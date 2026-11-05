@@ -1,0 +1,162 @@
+[
+  {
+    "id": "draft-01",
+    "channel": "social",
+    "text": "Our app is the fastest in India, guaranteed to double your savings!",
+    "expected_findings": [
+      {
+        "category": "claims",
+        "span_text": "fastest in India",
+        "rule_ref": "guideline-claims"
+      },
+      {
+        "category": "financial-promises",
+        "span_text": "guaranteed to double your savings",
+        "rule_ref": "guideline-financial-promises"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-02",
+    "channel": "ad",
+    "text": "Over 5 million customers rely on PayNest for zero transaction fee payments every day.",
+    "expected_findings": [
+      {
+        "category": "claims",
+        "span_text": "5 million",
+        "rule_ref": "fact-user-count"
+      },
+      {
+        "category": "terminology",
+        "span_text": "customers",
+        "rule_ref": "glossary:members"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-03",
+    "channel": "social",
+    "text": "Oopsie! Bank servers went RIP lol. Don't worry, Paynest will retry your payment shortly.",
+    "expected_findings": [
+      {
+        "category": "tone",
+        "span_text": "Oopsie! Bank servers went RIP lol",
+        "rule_ref": "guideline-tone"
+      },
+      {
+        "category": "terminology",
+        "span_text": "Paynest",
+        "rule_ref": "glossary:PayNest"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-04",
+    "channel": "email",
+    "text": "Hi, switch to PayNest smart savings today. We provide a risk-free fixed 12% yield that is 3x better than any traditional bank account in the country.",
+    "expected_findings": [
+      {
+        "category": "financial-promises",
+        "span_text": "risk-free fixed 12% yield",
+        "rule_ref": "guideline-financial-promises"
+      },
+      {
+        "category": "claims",
+        "span_text": "3x better than any traditional bank",
+        "rule_ref": "guideline-claims"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-05",
+    "channel": "blog",
+    "text": "Managing your personal finances does not have to be difficult. With the new release from PN, we are proud to introduce a payments platform that is 10X FASTER THAN EVERY OTHER APP on the market today. When you invest with us, we offer assured wealth growth with zero downside risk, allowing everyday people to secure their financial freedom effortlessly. Simply connect your attached account, verify your secret code, and watch your balance grow. Millions of clients have already transformed their daily routine with our intuitive dashboard and automated savings features.",
+    "expected_findings": [
+      {
+        "category": "terminology",
+        "span_text": "PN",
+        "rule_ref": "glossary:PayNest"
+      },
+      {
+        "category": "claims",
+        "span_text": "10X FASTER THAN EVERY OTHER APP",
+        "rule_ref": "guideline-claims"
+      },
+      {
+        "category": "financial-promises",
+        "span_text": "assured wealth growth with zero downside risk",
+        "rule_ref": "guideline-financial-promises"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-06",
+    "channel": "ad",
+    "text": "Looking for lightning cash? PayNest is India's No. 1 payment app, making money demand effortless.",
+    "expected_findings": [
+      {
+        "category": "terminology",
+        "span_text": "lightning cash",
+        "rule_ref": "glossary:instant transfer"
+      },
+      {
+        "category": "claims",
+        "span_text": "India's No. 1 payment app",
+        "rule_ref": "guideline-claims"
+      },
+      {
+        "category": "terminology",
+        "span_text": "money demand",
+        "rule_ref": "glossary:payment request"
+      }
+    ],
+    "is_clean": false
+  },
+  {
+    "id": "draft-07",
+    "channel": "social",
+    "text": "Send money to your family and friends with PayNest. All UPI payments carry zero fees for our members.",
+    "expected_findings": [],
+    "is_clean": true
+  },
+  {
+    "id": "draft-08",
+    "channel": "ad",
+    "text": "Join over 1.2 million members managing their everyday expenses smartly with PayNest.",
+    "expected_findings": [],
+    "is_clean": true
+  },
+  {
+    "id": "draft-09",
+    "channel": "email",
+    "text": "We are excited to announce PayNest v2.3. Internal benchmark testing shows it is 2x faster than our previous version. Update now to enjoy smooth UPI transfers.",
+    "expected_findings": [],
+    "is_clean": true
+  },
+  {
+    "id": "draft-10",
+    "channel": "social",
+    "text": "Need assistance with a transaction? PayNest provides 24/7 in-app support to resolve your queries whenever you need help.",
+    "expected_findings": [],
+    "is_clean": true
+  },
+  {
+    "id": "draft-11",
+    "channel": "ad",
+    "text": "Link your preferred bank account effortlessly. PayNest supports seamless payments across 140+ partner banks throughout India.",
+    "expected_findings": [],
+    "is_clean": true
+  },
+  {
+    "id": "draft-12",
+    "channel": "blog",
+    "text": "Building consistent financial habits starts with tracking daily outlays. With PayNest, members can monitor their spending trends, categorize transactions, and set intelligent budget reminders without complication. Rather than guessing where funds went at the end of each month, clear analytics provide full visibility over your linked bank account. Combined with secure authentication protocols and dedicated round-the-clock customer support, managing money becomes a predictable, stress-free part of your everyday routine. Take control of your daily financial health today with transparent tools built for modern living.",
+    "expected_findings": [],
+    "is_clean": true
+  }
+]

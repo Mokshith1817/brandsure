@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "కొనాలా? ఆగాలా? (Buy Now or Wait) - Vegetable Price Forecast",
+  title: "Mokshith — Selected Works & Engineering Architecture",
   description:
-    "Vegetable price forecast and purchase advice for ordinary families, homemakers, and students in simple Telugu and English.",
+    "Interactive 3D cylindrical showcase of systems programming, WebGPU graphics engines, distributed agent protocols, and high-performance software artifacts.",
 };
 
 export default function RootLayout({
@@ -13,9 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="te">
-      <body>
-        <main className="app-container">{children}</main>
+    <html lang="en">
+      <body className="bg-[#142139] text-[#f3efe5] antialiased">
+        {children}
       </body>
     </html>
   );

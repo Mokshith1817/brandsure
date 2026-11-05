@@ -1,0 +1,134 @@
+{
+  "facts": [
+    {
+      "key": "fact-upi-fee",
+      "statement": "UPI payments on PayNest carry zero transaction fees for the user.",
+      "value": "0",
+      "unit": "INR",
+      "as_of": "2026-10-01",
+      "source_note": "Fictional demo data for PayNest (Pricing Policy v2)"
+    },
+    {
+      "key": "fact-app-speed",
+      "statement": "PayNest v2.3 is 2x faster than v1.0 per an internal test benchmark.",
+      "value": "2",
+      "unit": "x faster",
+      "as_of": "2026-10-15",
+      "source_note": "Fictional demo data for PayNest (Internal Benchmark Suite #884)"
+    },
+    {
+      "key": "fact-user-count",
+      "statement": "PayNest has 1.2 million registered members as of 30 September 2026.",
+      "value": "1.2",
+      "unit": "million",
+      "as_of": "2026-09-30",
+      "source_note": "Fictional demo data for PayNest (Q3 2026 Metrics)"
+    },
+    {
+      "key": "fact-supported-banks",
+      "statement": "PayNest supports instant UPI connectivity across 140+ partner banks in India.",
+      "value": "140",
+      "unit": "banks",
+      "as_of": "2026-10-01",
+      "source_note": "Fictional demo data for PayNest (NPCI Partner Network Registry)"
+    },
+    {
+      "key": "fact-support-hours",
+      "statement": "PayNest provides 24/7 in-app customer assistance for payment disputes and inquiries.",
+      "value": "24/7",
+      "unit": "hours",
+      "as_of": "2026-10-01",
+      "source_note": "Fictional demo data for PayNest (Customer Operations Charter)"
+    }
+  ],
+  "guidelines": [
+    {
+      "id": "guideline-financial-promises",
+      "title": "Prohibition of Guaranteed Returns and Assured Outcomes",
+      "text": "Never promise, state, or imply guaranteed financial returns, fixed interest profits, or risk-free investment outcomes. All financial growth and investment services are subject to market conditions and regulatory disclosures.",
+      "category": "financial-promises"
+    },
+    {
+      "id": "guideline-claims",
+      "title": "Substantiation of Promotional and Superlative Claims",
+      "text": "Do not use superlatives such as 'best', 'No. 1', 'fastest', or 'cheapest' unless an exact, verified approved fact in the company fact base substantiates the claim. Comparative claims against named competitors are prohibited without legal approval.",
+      "category": "claims"
+    },
+    {
+      "id": "guideline-tone",
+      "title": "Professional and Reassuring Brand Tone",
+      "text": "Maintain a friendly, empathetic, but strictly professional tone across all channels. Never use flippant slang, sarcasm, or internet memes when discussing payment failures, technical glitches, or sensitive financial account actions.",
+      "category": "tone"
+    },
+    {
+      "id": "guideline-accessibility",
+      "title": "Plain Reading Level and Accessible Descriptions",
+      "text": "Headlines and marketing copy must be written at a clear, plain reading level (target grade 8 or below) without opaque jargon. Visual assets and campaign images must always include meaningful alternative text (alt text).",
+      "category": "accessibility"
+    },
+    {
+      "id": "guideline-terminology",
+      "title": "Brand Name Accuracy and Official Nomenclature",
+      "text": "Always write the company brand name exactly as 'PayNest' with capital P and N. Never write 'Paynest', 'PN', or 'Pay Nest'. Always use approved glossary terms for core app capabilities.",
+      "category": "terminology"
+    },
+    {
+      "id": "guideline-formatting",
+      "title": "Typography and Clean Formatting",
+      "text": "Avoid deceptive formatting, excessive exclamation marks, and all-caps shouting (e.g. 'FREE MONEY NOW') in social media copy, subject lines, or digital advertising headlines.",
+      "category": "formatting"
+    }
+  ],
+  "glossary": [
+    {
+      "preferred": "PayNest",
+      "banned": ["Paynest", "PN", "Pay Nest"],
+      "note": "Official brand name must always be written in CamelCase as PayNest."
+    },
+    {
+      "preferred": "members",
+      "banned": ["customers", "users", "clients"],
+      "note": "Refer to people who use PayNest as members to reinforce community focus."
+    },
+    {
+      "preferred": "instant transfer",
+      "banned": ["superfast transfer", "lightning cash", "magic send"],
+      "note": "Use standardized transaction phrasing approved by banking partners."
+    },
+    {
+      "preferred": "smart savings",
+      "banned": ["get rich quick", "easy money", "wealth multiplier"],
+      "note": "Promote responsible saving habits without speculative or misleading promises."
+    },
+    {
+      "preferred": "transaction fee",
+      "banned": ["hidden charge", "service tax cut", "surcharge"],
+      "note": "Maintain clear and transparent fee language."
+    },
+    {
+      "preferred": "security PIN",
+      "banned": ["secret code", "ATM password", "passkey"],
+      "note": "Adhere strictly to NPCI security nomenclature for UPI PIN."
+    },
+    {
+      "preferred": "linked bank account",
+      "banned": ["attached account", "connected bank", "synced wallet"],
+      "note": "Use standard banking integration terminology."
+    },
+    {
+      "preferred": "payment request",
+      "banned": ["money demand", "collect call", "fund pull"],
+      "note": "Ensure polite, clear wording for UPI collect requests."
+    },
+    {
+      "preferred": "partner banks",
+      "banned": ["sponsored banks", "affiliate banks", "our banks"],
+      "note": "Accurately describe independent banking institutions integrated via NPCI."
+    },
+    {
+      "preferred": "portfolio",
+      "banned": ["pot of gold", "stash", "crypto loot"],
+      "note": "Use dignified, professional financial terminology."
+    }
+  ]
+}
