@@ -1,0 +1,241 @@
+{
+  "evaluated_at": "2026-11-05T04:47:57.771Z",
+  "total_drafts": 12,
+  "flawed_drafts": 6,
+  "clean_drafts": 6,
+  "metrics": {
+    "total_expected_violations": 14,
+    "true_positives": 14,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "precision": 100,
+    "recall": 100,
+    "f1_score": 100
+  },
+  "drafts": [
+    {
+      "id": "draft-01",
+      "channel": "social",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 2,
+      "detected_count": 2,
+      "duration_ms": 1,
+      "findings": [
+        {
+          "category": "claims",
+          "severity": "medium",
+          "span_text": "fastest in India",
+          "source_id": "guideline-claims",
+          "suggested_fix": "fast and reliable across India"
+        },
+        {
+          "category": "financial-promises",
+          "severity": "high",
+          "span_text": "guaranteed to double your savings",
+          "source_id": "guideline-financial-promises",
+          "suggested_fix": "designed to help grow your savings responsibly"
+        }
+      ]
+    },
+    {
+      "id": "draft-02",
+      "channel": "ad",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 2,
+      "detected_count": 2,
+      "duration_ms": 259,
+      "findings": [
+        {
+          "category": "claims",
+          "severity": "medium",
+          "span_text": "5 million",
+          "source_id": "fact-user-count",
+          "suggested_fix": "1.2 million"
+        },
+        {
+          "category": "terminology",
+          "severity": "low",
+          "span_text": "customers",
+          "source_id": "glossary:members",
+          "suggested_fix": "members"
+        }
+      ]
+    },
+    {
+      "id": "draft-03",
+      "channel": "social",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 2,
+      "detected_count": 2,
+      "duration_ms": 0,
+      "findings": [
+        {
+          "category": "tone",
+          "severity": "medium",
+          "span_text": "Oopsie! Bank servers went RIP lol",
+          "source_id": "guideline-tone",
+          "suggested_fix": "We are experiencing a temporary banking partner delay"
+        },
+        {
+          "category": "terminology",
+          "severity": "low",
+          "span_text": "Paynest",
+          "source_id": "glossary:PayNest",
+          "suggested_fix": "PayNest"
+        }
+      ]
+    },
+    {
+      "id": "draft-04",
+      "channel": "email",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 2,
+      "detected_count": 2,
+      "duration_ms": 0,
+      "findings": [
+        {
+          "category": "financial-promises",
+          "severity": "high",
+          "span_text": "risk-free fixed 12% yield",
+          "source_id": "guideline-financial-promises",
+          "suggested_fix": "competitive market-linked savings options"
+        },
+        {
+          "category": "claims",
+          "severity": "medium",
+          "span_text": "3x better than any traditional bank account in the country",
+          "source_id": "guideline-claims",
+          "suggested_fix": "competitive rates with transparent terms"
+        }
+      ]
+    },
+    {
+      "id": "draft-05",
+      "channel": "blog",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 3,
+      "detected_count": 3,
+      "duration_ms": 0,
+      "findings": [
+        {
+          "category": "terminology",
+          "severity": "low",
+          "span_text": "PN",
+          "source_id": "glossary:PayNest",
+          "suggested_fix": "PayNest"
+        },
+        {
+          "category": "claims",
+          "severity": "medium",
+          "span_text": "10X FASTER THAN EVERY OTHER APP",
+          "source_id": "guideline-claims",
+          "suggested_fix": "2x faster than our previous version"
+        },
+        {
+          "category": "financial-promises",
+          "severity": "high",
+          "span_text": "assured wealth growth with zero downside risk",
+          "source_id": "guideline-financial-promises",
+          "suggested_fix": "disciplined savings tools with market disclosures"
+        }
+      ]
+    },
+    {
+      "id": "draft-06",
+      "channel": "ad",
+      "is_clean": false,
+      "passed": true,
+      "expected_count": 3,
+      "detected_count": 3,
+      "duration_ms": 0,
+      "findings": [
+        {
+          "category": "terminology",
+          "severity": "low",
+          "span_text": "lightning cash",
+          "source_id": "glossary:instant transfer",
+          "suggested_fix": "instant transfer"
+        },
+        {
+          "category": "claims",
+          "severity": "medium",
+          "span_text": "India's No. 1 payment app",
+          "source_id": "guideline-claims",
+          "suggested_fix": "a leading UPI payment app in India"
+        },
+        {
+          "category": "terminology",
+          "severity": "low",
+          "span_text": "money demand",
+          "source_id": "glossary:payment request",
+          "suggested_fix": "payment request"
+        }
+      ]
+    },
+    {
+      "id": "draft-07",
+      "channel": "social",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 159,
+      "findings": []
+    },
+    {
+      "id": "draft-08",
+      "channel": "ad",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 88,
+      "findings": []
+    },
+    {
+      "id": "draft-09",
+      "channel": "email",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 151,
+      "findings": []
+    },
+    {
+      "id": "draft-10",
+      "channel": "social",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 94,
+      "findings": []
+    },
+    {
+      "id": "draft-11",
+      "channel": "ad",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 179,
+      "findings": []
+    },
+    {
+      "id": "draft-12",
+      "channel": "blog",
+      "is_clean": true,
+      "passed": true,
+      "expected_count": 0,
+      "detected_count": 0,
+      "duration_ms": 73,
+      "findings": []
+    }
+  ]
+}

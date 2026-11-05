@@ -8,6 +8,7 @@ interface SourceCitationProps {
   sourceType: SourceType;
   sourceId?: string | null;
   sourceExcerpt?: string | null;
+  excerpt?: string | null;
   className?: string;
 }
 
@@ -15,11 +16,13 @@ export function SourceCitation({
   sourceType,
   sourceId,
   sourceExcerpt,
+  excerpt,
   className = '',
 }: SourceCitationProps) {
   const [expanded, setExpanded] = useState(false);
+  const activeExcerpt = sourceExcerpt || excerpt;
 
-  if (sourceType === 'none' || !sourceExcerpt) {
+  if (sourceType === 'none' || !activeExcerpt) {
     return (
       <div className={`flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-200 ${className}`}>
         <BookmarkX className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />

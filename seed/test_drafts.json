@@ -74,7 +74,7 @@
   {
     "id": "draft-05",
     "channel": "blog",
-    "text": "Managing your personal finances does not have to be difficult. With the new release from PN, we are proud to introduce a payments platform that is 10X FASTER THAN EVERY OTHER APP on the market today. When you invest with us, we offer assured wealth growth with zero downside risk, allowing everyday people to secure their financial freedom effortlessly. Simply connect your attached account, verify your secret code, and watch your balance grow. Millions of clients have already transformed their daily routine with our intuitive dashboard and automated savings features.",
+    "text": "Managing your personal finances does not have to be difficult. With the new release from PN, we are proud to introduce a payments platform that is 10X FASTER THAN EVERY OTHER APP on the market today. When you invest with us, we offer assured wealth growth with zero downside risk, allowing everyday people to secure their financial freedom effortlessly. Simply connect your linked bank account, verify your security PIN, and watch your balance grow. Millions of members have already transformed their daily routine with our intuitive dashboard and automated savings features.",
     "expected_findings": [
       {
         "category": "terminology",

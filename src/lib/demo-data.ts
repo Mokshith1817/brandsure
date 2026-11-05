@@ -1,5 +1,18 @@
 import rulebook from '../../seed/rulebook.json';
-import type { Guideline, Fact, GlossaryEntry, AuditLogEntry, Profile, Role } from '@/types/database';
+import type {
+  Guideline,
+  Fact,
+  GlossaryEntry,
+  AuditLogEntry,
+  Profile,
+  Role,
+  Draft,
+  DraftVersion,
+  Finding,
+  FindingStatus,
+  DraftStatus,
+  Channel,
+} from '@/types/database';
 
 export const DEMO_PROFILES: Record<string, { role: Role; full_name: string }> = {
   'creator@paynest.demo': { role: 'creator', full_name: 'PayNest Creator' },
@@ -44,6 +57,168 @@ let inMemoryGlossary: GlossaryEntry[] = rulebook.glossary.map((item, index) => (
   note: item.note,
   created_at: new Date(Date.now() - (10 - index) * 86400000).toISOString(),
 }));
+
+// Pre-seeded demo drafts
+let inMemoryDrafts: (Draft & { finding_counts?: { high: number; medium: number; low: number } })[] = [
+  {
+    id: 'draft-demo-1',
+    org_id: DEMO_ORG.id,
+    creator_id: 'demo-creator',
+    channel: 'social',
+    status: 'checked',
+    current_version: 1,
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+    profiles: {
+      id: 'demo-creator',
+      org_id: DEMO_ORG.id,
+      full_name: 'PayNest Creator',
+      role: 'creator',
+      created_at: new Date().toISOString(),
+    },
+    finding_counts: { high: 1, medium: 1, low: 0 },
+  },
+  {
+    id: 'draft-demo-2',
+    org_id: DEMO_ORG.id,
+    creator_id: 'demo-creator',
+    channel: 'ad',
+    status: 'checked',
+    current_version: 1,
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+    profiles: {
+      id: 'demo-creator',
+      org_id: DEMO_ORG.id,
+      full_name: 'PayNest Creator',
+      role: 'creator',
+      created_at: new Date().toISOString(),
+    },
+    finding_counts: { high: 0, medium: 1, low: 1 },
+  },
+  {
+    id: 'draft-demo-3',
+    org_id: DEMO_ORG.id,
+    creator_id: 'demo-creator',
+    channel: 'social',
+    status: 'approved',
+    current_version: 1,
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+    profiles: {
+      id: 'demo-creator',
+      org_id: DEMO_ORG.id,
+      full_name: 'PayNest Creator',
+      role: 'creator',
+      created_at: new Date().toISOString(),
+    },
+    finding_counts: { high: 0, medium: 0, low: 0 },
+  },
+];
+
+let inMemoryDraftVersions: DraftVersion[] = [
+  {
+    id: 'version-demo-1',
+    draft_id: 'draft-demo-1',
+    version_no: 1,
+    body: 'Our app is the fastest in India, guaranteed to double your savings!',
+    created_by: 'demo-creator',
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'version-demo-2',
+    draft_id: 'draft-demo-2',
+    version_no: 1,
+    body: 'Over 5 million customers rely on PayNest for zero transaction fee payments every day.',
+    created_by: 'demo-creator',
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+  {
+    id: 'version-demo-3',
+    draft_id: 'draft-demo-3',
+    version_no: 1,
+    body: 'Send money to your family and friends with PayNest. All UPI payments carry zero fees for our members.',
+    created_by: 'demo-creator',
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+];
+
+let inMemoryFindings: Finding[] = [
+  {
+    id: 'finding-demo-1',
+    draft_version_id: 'version-demo-1',
+    category: 'claims',
+    severity: 'medium',
+    span_text: 'fastest in India',
+    reason:
+      'Superlative claim without approved substantiation. The fact base substantiates "2x faster than v1.0", not "fastest in India".',
+    source_type: 'guideline',
+    source_id: 'guideline-claims',
+    source_excerpt:
+      "Do not use superlatives such as 'best', 'No. 1', 'fastest', or 'cheapest' unless an exact, verified approved fact in the company fact base substantiates the claim.",
+    suggested_fix: 'fast and reliable across India',
+    status: 'open',
+    decision_reason: null,
+    decided_by: null,
+    decided_at: null,
+    ai_generated: true,
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'finding-demo-2',
+    draft_version_id: 'version-demo-1',
+    category: 'financial-promises',
+    severity: 'high',
+    span_text: 'guaranteed to double your savings',
+    reason:
+      'Prohibited financial promise. Regulatory and brand guidelines strictly disallow claiming guaranteed returns or assured wealth doubling.',
+    source_type: 'guideline',
+    source_id: 'guideline-financial-promises',
+    source_excerpt:
+      'Never promise, state, or imply guaranteed financial returns, fixed interest profits, or risk-free investment outcomes. All financial growth and investment services are subject to market conditions and regulatory disclosures.',
+    suggested_fix: 'designed to help grow your savings responsibly',
+    status: 'open',
+    decision_reason: null,
+    decided_by: null,
+    decided_at: null,
+    ai_generated: true,
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'finding-demo-3',
+    draft_version_id: 'version-demo-2',
+    category: 'claims',
+    severity: 'medium',
+    span_text: '5 million',
+    reason:
+      'Unsubstantiated user count metric. PayNest has 1.2 million registered members per verified company metrics, not 5 million.',
+    source_type: 'fact',
+    source_id: 'fact-user-count',
+    source_excerpt: 'PayNest has 1.2 million registered members as of 30 September 2026.',
+    suggested_fix: '1.2 million',
+    status: 'open',
+    decision_reason: null,
+    decided_by: null,
+    decided_at: null,
+    ai_generated: true,
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+  {
+    id: 'finding-demo-4',
+    draft_version_id: 'version-demo-2',
+    category: 'terminology',
+    severity: 'low',
+    span_text: 'customers',
+    reason: 'Use approved terminology "members". "customers" is non-compliant nomenclature.',
+    source_type: 'glossary',
+    source_id: 'glossary:members',
+    source_excerpt: 'Refer to people who use PayNest as members to reinforce community focus.',
+    suggested_fix: 'members',
+    status: 'open',
+    decision_reason: null,
+    decided_by: null,
+    decided_at: null,
+    ai_generated: true,
+    created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+  },
+];
 
 let inMemoryAuditLogs: (AuditLogEntry & { actor_name?: string })[] = [
   {
@@ -102,11 +277,11 @@ let inMemoryAuditLogs: (AuditLogEntry & { actor_name?: string })[] = [
     actor_type: 'ai_agent',
     action: 'draft_checked',
     entity_type: 'draft_version',
-    entity_id: 'draft-version-demo-1',
+    entity_id: 'version-demo-1',
     detail: {
       findings_count: 2,
       duration_ms: 680,
-      bounded_citations: ['guideline-financial-promises', 'fact-upi-fee'],
+      bounded_citations: ['guideline-financial-promises', 'guideline-claims'],
     },
     created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
     actor_name: 'BrandSure AI Review Agent',
@@ -127,6 +302,174 @@ export function getDemoGlossary(): GlossaryEntry[] {
 
 export function getDemoAuditLogs(): (AuditLogEntry & { actor_name?: string })[] {
   return inMemoryAuditLogs;
+}
+
+export function addDemoAuditLog(entry: {
+  action: string;
+  actor_id?: string | null;
+  actor_type: 'user' | 'ai_agent' | 'system';
+  actor_name?: string;
+  entity_type: string;
+  entity_id: string;
+  detail: Record<string, any>;
+}) {
+  const newLog: AuditLogEntry & { actor_name?: string } = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    org_id: DEMO_ORG.id,
+    actor_id: entry.actor_id || null,
+    actor_type: entry.actor_type,
+    action: entry.action,
+    entity_type: entry.entity_type,
+    entity_id: entry.entity_id,
+    detail: entry.detail || {},
+    created_at: new Date().toISOString(),
+    actor_name: entry.actor_name,
+  };
+  inMemoryAuditLogs.unshift(newLog);
+}
+
+export function getDemoDrafts(): (Draft & { finding_counts?: { high: number; medium: number; low: number } })[] {
+  // Update live finding counts
+  return inMemoryDrafts.map((d) => {
+    const version = inMemoryDraftVersions.find(
+      (v) => v.draft_id === d.id && v.version_no === d.current_version
+    );
+    const findings = version ? inMemoryFindings.filter((f) => f.draft_version_id === version.id) : [];
+    const openFindings = findings.filter((f) => f.status === 'open');
+
+    return {
+      ...d,
+      finding_counts: {
+        high: openFindings.filter((f) => f.severity === 'high').length,
+        medium: openFindings.filter((f) => f.severity === 'medium').length,
+        low: openFindings.filter((f) => f.severity === 'low').length,
+      },
+    };
+  });
+}
+
+export function getDemoDraftById(draftId: string) {
+  const draft = inMemoryDrafts.find((d) => d.id === draftId);
+  if (!draft) return null;
+
+  const version = inMemoryDraftVersions.find(
+    (v) => v.draft_id === draftId && v.version_no === draft.current_version
+  );
+
+  const findings = version
+    ? inMemoryFindings.filter((f) => f.draft_version_id === version.id)
+    : [];
+
+  return {
+    draft,
+    version,
+    findings,
+  };
+}
+
+export function createDemoDraft(params: {
+  channel: Channel;
+  text: string;
+  creatorId: string;
+  creatorName: string;
+  findings: Array<any>;
+}) {
+  const draftId = `draft-${Date.now()}`;
+  const versionId = `version-${Date.now()}`;
+
+  const newDraft: Draft & { finding_counts?: { high: number; medium: number; low: number } } = {
+    id: draftId,
+    org_id: DEMO_ORG.id,
+    creator_id: params.creatorId,
+    channel: params.channel,
+    status: 'checked',
+    current_version: 1,
+    created_at: new Date().toISOString(),
+    profiles: {
+      id: params.creatorId,
+      org_id: DEMO_ORG.id,
+      full_name: params.creatorName,
+      role: 'creator',
+      created_at: new Date().toISOString(),
+    },
+    finding_counts: {
+      high: params.findings.filter((f) => f.severity === 'high').length,
+      medium: params.findings.filter((f) => f.severity === 'medium').length,
+      low: params.findings.filter((f) => f.severity === 'low').length,
+    },
+  };
+
+  const newVersion: DraftVersion = {
+    id: versionId,
+    draft_id: draftId,
+    version_no: 1,
+    body: params.text,
+    created_by: params.creatorId,
+    created_at: new Date().toISOString(),
+  };
+
+  const newFindings: Finding[] = params.findings.map((f, idx) => ({
+    id: `finding-${Date.now()}-${idx}`,
+    draft_version_id: versionId,
+    category: f.category,
+    severity: f.severity,
+    span_text: f.span_text,
+    reason: f.reason,
+    source_type: f.source_type,
+    source_id: f.source_id,
+    source_excerpt: f.source_excerpt,
+    suggested_fix: f.suggested_fix,
+    status: 'open',
+    decision_reason: null,
+    decided_by: null,
+    decided_at: null,
+    ai_generated: true,
+    created_at: new Date().toISOString(),
+  }));
+
+  inMemoryDrafts.unshift(newDraft);
+  inMemoryDraftVersions.unshift(newVersion);
+  inMemoryFindings.unshift(...newFindings);
+
+  return { draftId, versionId, findings: newFindings };
+}
+
+export function updateDemoFindingStatus(
+  findingId: string,
+  status: FindingStatus,
+  decisionReason?: string | null,
+  decidedBy?: string | null
+) {
+  const finding = inMemoryFindings.find((f) => f.id === findingId);
+  if (!finding) return null;
+
+  finding.status = status;
+  finding.decision_reason = decisionReason || null;
+  finding.decided_by = decidedBy || null;
+  finding.decided_at = new Date().toISOString();
+
+  return finding;
+}
+
+export function updateDemoDraftBody(draftId: string, newBody: string) {
+  const draft = inMemoryDrafts.find((d) => d.id === draftId);
+  if (!draft) return null;
+
+  const version = inMemoryDraftVersions.find(
+    (v) => v.draft_id === draftId && v.version_no === draft.current_version
+  );
+  if (version) {
+    version.body = newBody;
+  }
+  return version;
+}
+
+export function updateDemoDraftStatus(draftId: string, status: DraftStatus) {
+  const draft = inMemoryDrafts.find((d) => d.id === draftId);
+  if (draft) {
+    draft.status = status;
+  }
+  return draft;
 }
 
 export function isSupabaseConfigured(): boolean {
