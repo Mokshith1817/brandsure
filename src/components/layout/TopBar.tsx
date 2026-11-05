@@ -8,6 +8,8 @@ import type { Role } from '@/types/database';
 import { ShieldCheck, LogOut, User, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { logoutAction } from '@/app/actions/auth';
+
 interface TopBarProps {
   userEmail: string;
   fullName: string;
@@ -22,16 +24,12 @@ export function TopBar({
   orgName = 'PayNest',
 }: TopBarProps) {
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      toast.success('Logged out successfully');
-      router.push('/login');
-      router.refresh();
+      await logoutAction();
     } catch {
-      toast.error('Failed to log out');
+      router.push('/login');
     }
   };
 

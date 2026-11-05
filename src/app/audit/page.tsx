@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { AuditLogClient } from './AuditLogClient';
+import { getCurrentSession } from '@/lib/auth';
+import { getDemoAuditLogs } from '@/lib/demo-data';
 import type { Role, AuditLogEntry } from '@/types/database';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -15,27 +17,14 @@ export const metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AuditLogPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, profile, isDemoMode } = await getCurrentSession();
 
-  if (!user) {
-    redirect('/login');
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, organisations(name)')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
+  if (!user || !profile) {
     redirect('/login');
   }
 
   const role = profile.role as Role;
-  const orgName = (profile.organisations as any)?.name || 'PayNest';
+  const orgName = profile.organisations?.name || 'PayNest';
 
   // Only Admin and Manager are permitted to access full audit trail
   const isAuthorized = role === 'admin' || role === 'manager';
@@ -43,7 +32,7 @@ export default async function AuditLogPage() {
   if (!isAuthorized) {
     return (
       <AppLayout
-        userEmail={user.email || ''}
+        userEmail={user.email}
         fullName={profile.full_name}
         role={role}
         orgName={orgName}
@@ -58,44 +47,58 @@ export default async function AuditLogPage() {
             As a <strong>{role}</strong>, you can view your draft findings and team comments on the Drafts page.
           </p>
           <Link
-            href="/drafts"
+            href="/rules"
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to Drafts</span>
+            <span>Return to Rulebook</span>
           </Link>
         </div>
       </AppLayout>
     );
   }
 
-  // Fetch recent audit logs for the organization
-  const { data: rawLogs } = await supabase
-    .from('audit_log')
-    .select(`
-      *,
-      profiles:actor_id (full_name)
-    `)
-    .eq('org_id', profile.org_id)
-    .order('created_at', { ascending: false })
-    .limit(100);
+  let logs: (AuditLogEntry & { actor_name?: string })[] = [];
 
-  const logs = (rawLogs || []).map((row: any) => ({
-    id: row.id,
-    org_id: row.org_id,
-    actor_id: row.actor_id,
-    actor_type: row.actor_type,
-    action: row.action,
-    entity_type: row.entity_type,
-    entity_id: row.entity_id,
-    detail: row.detail || {},
-    created_at: row.created_at,
-    actor_name: row.profiles?.full_name || (row.actor_type === 'ai_agent' ? 'BrandSure AI' : undefined),
-  }));
+  if (!isDemoMode) {
+    try {
+      const supabase = await createClient();
+      const { data: rawLogs } = await supabase
+        .from('audit_log')
+        .select(`
+          *,
+          profiles:actor_id (full_name)
+        `)
+        .eq('org_id', profile.org_id)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (rawLogs && rawLogs.length > 0) {
+        logs = rawLogs.map((row: any) => ({
+          id: row.id,
+          org_id: row.org_id,
+          actor_id: row.actor_id,
+          actor_type: row.actor_type,
+          action: row.action,
+          entity_type: row.entity_type,
+          entity_id: row.entity_id,
+          detail: row.detail || {},
+          created_at: row.created_at,
+          actor_name: row.profiles?.full_name || (row.actor_type === 'ai_agent' ? 'BrandSure AI' : undefined),
+        }));
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  if (logs.length === 0) {
+    logs = getDemoAuditLogs();
+  }
 
   return (
     <AppLayout
-      userEmail={user.email || ''}
+      userEmail={user.email}
       fullName={profile.full_name}
       role={role}
       orgName={orgName}

@@ -2,45 +2,44 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { ShieldCheck, ArrowRight, Lock, Mail, Sparkles, Building2 } from 'lucide-react';
+import { loginAction } from '@/app/actions/auth';
+import { ShieldCheck, ArrowRight, Lock, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@paynest.demo');
+  const [password, setPassword] = useState('PayNest2026!');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (loginEmail: string, loginPassword?: string) => {
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error(error.message || 'Invalid email or password');
+      const res = await loginAction(loginEmail, loginPassword);
+      if (res?.error) {
+        toast.error(res.error);
         setLoading(false);
         return;
       }
 
-      toast.success('Signed in successfully');
-      router.push('/');
+      toast.success(`Welcome to BrandSure (${loginEmail})`);
+      router.push(res.redirect || '/');
       router.refresh();
     } catch (err: any) {
-      toast.error(err.message || 'An unexpected error occurred');
+      toast.error(err.message || 'An unexpected error occurred during login');
       setLoading(false);
     }
   };
 
-  const handleQuickDemoLogin = (demoEmail: string) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(email, password);
+  };
+
+  const handleOneClickPersona = async (demoEmail: string) => {
     setEmail(demoEmail);
     setPassword('PayNest2026!');
+    await performLogin(demoEmail, 'PayNest2026!');
   };
 
   return (
@@ -61,7 +60,7 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 shadow-sm border border-slate-200 rounded-xl sm:px-10 space-y-6">
-          <form className="space-y-4" onSubmit={handleLogin}>
+          <form className="space-y-4" onSubmit={handleFormSubmit}>
             <div>
               <label htmlFor="email" className="block text-xs font-semibold text-slate-700">
                 Email address
@@ -111,53 +110,79 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign in to Dashboard'}
+              {loading ? 'Authenticating...' : 'Sign in to Dashboard'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Quick Demo Role Selectors for Hackathon Judges */}
+          {/* Quick 1-Click Role Login for Hackathon Judges */}
           <div className="pt-4 border-t border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>One-Click Demo Credentials (PayNest)</span>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Instant 1-Click Persona Login</span>
+              </div>
+              <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
+                Click any role to enter
+              </span>
             </div>
+
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('creator@paynest.demo')}
-                className="p-2 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                disabled={loading}
+                onClick={() => handleOneClickPersona('creator@paynest.demo')}
+                className="p-2.5 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <div className="font-semibold text-slate-800">Creator</div>
+                <div className="font-semibold text-slate-800 group-hover:text-indigo-700 flex items-center justify-between">
+                  <span>Creator</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600" />
+                </div>
                 <div className="text-[11px] text-slate-500 truncate">creator@paynest.demo</div>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('reviewer@paynest.demo')}
-                className="p-2 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                disabled={loading}
+                onClick={() => handleOneClickPersona('reviewer@paynest.demo')}
+                className="p-2.5 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <div className="font-semibold text-slate-800">Reviewer</div>
+                <div className="font-semibold text-slate-800 group-hover:text-indigo-700 flex items-center justify-between">
+                  <span>Reviewer</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600" />
+                </div>
                 <div className="text-[11px] text-slate-500 truncate">reviewer@paynest.demo</div>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('manager@paynest.demo')}
-                className="p-2 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                disabled={loading}
+                onClick={() => handleOneClickPersona('manager@paynest.demo')}
+                className="p-2.5 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <div className="font-semibold text-slate-800">Manager</div>
+                <div className="font-semibold text-slate-800 group-hover:text-indigo-700 flex items-center justify-between">
+                  <span>Manager</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600" />
+                </div>
                 <div className="text-[11px] text-slate-500 truncate">manager@paynest.demo</div>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleQuickDemoLogin('admin@paynest.demo')}
-                className="p-2 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors"
+                disabled={loading}
+                onClick={() => handleOneClickPersona('admin@paynest.demo')}
+                className="p-2.5 border border-slate-200 rounded-lg text-left hover:bg-indigo-50 hover:border-indigo-300 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <div className="font-semibold text-slate-800">Admin</div>
+                <div className="font-semibold text-slate-800 group-hover:text-indigo-700 flex items-center justify-between">
+                  <span>Admin</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600" />
+                </div>
                 <div className="text-[11px] text-slate-500 truncate">admin@paynest.demo</div>
               </button>
             </div>
-            <p className="mt-2 text-[11px] text-slate-400 text-center">
-              Demo Password for all accounts: <span className="font-mono text-slate-600">PayNest2026!</span>
+
+            <p className="mt-3 text-[11px] text-slate-400 text-center">
+              Password for all accounts: <span className="font-mono text-slate-600 font-semibold">PayNest2026!</span>
             </p>
           </div>
         </div>

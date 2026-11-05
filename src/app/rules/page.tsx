@@ -4,38 +4,48 @@ import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { BookOpen, Database, Type, Check, Ban } from 'lucide-react';
 
+import { getCurrentSession } from '@/lib/auth';
+import { getDemoGuidelines, getDemoFacts, getDemoGlossary } from '@/lib/demo-data';
+
 export const dynamic = 'force-dynamic';
 
 export default async function RulesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user, profile, isDemoMode } = await getCurrentSession();
 
-  if (!user) {
+  if (!user || !profile) {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, organisations(name)')
-    .eq('id', user.id)
-    .single();
+  let guidelines: any[] = [];
+  let facts: any[] = [];
+  let glossary: any[] = [];
 
-  const [guidelinesRes, factsRes, glossaryRes] = await Promise.all([
-    supabase.from('guidelines').select('*').order('category', { ascending: true }),
-    supabase.from('facts').select('*').order('key', { ascending: true }),
-    supabase.from('glossary').select('*').order('preferred', { ascending: true }),
-  ]);
+  if (!isDemoMode) {
+    try {
+      const supabase = await createClient();
+      const [guidelinesRes, factsRes, glossaryRes] = await Promise.all([
+        supabase.from('guidelines').select('*').order('category', { ascending: true }),
+        supabase.from('facts').select('*').order('key', { ascending: true }),
+        supabase.from('glossary').select('*').order('preferred', { ascending: true }),
+      ]);
+      guidelines = guidelinesRes.data || [];
+      facts = factsRes.data || [];
+      glossary = glossaryRes.data || [];
+    } catch {
+      // Fallback
+    }
+  }
 
-  const guidelines = guidelinesRes.data || [];
-  const facts = factsRes.data || [];
-  const glossary = glossaryRes.data || [];
+  if (guidelines.length === 0) guidelines = getDemoGuidelines();
+  if (facts.length === 0) facts = getDemoFacts();
+  if (glossary.length === 0) glossary = getDemoGlossary();
 
   return (
     <AppLayout
-      userEmail={user!.email!}
-      fullName={profile?.full_name || 'User'}
-      role={profile?.role || 'creator'}
-      orgName={profile?.organisations?.name || 'PayNest'}
+      userEmail={user.email}
+      fullName={profile.full_name}
+      role={profile.role}
+      orgName={profile.organisations?.name || 'PayNest'}
     >
       <div className="space-y-8 pb-10">
         <div className="border-b border-slate-200 pb-5">

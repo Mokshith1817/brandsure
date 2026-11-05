@@ -3,34 +3,44 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { GlossaryClient } from './GlossaryClient';
+import { getCurrentSession } from '@/lib/auth';
+import { getDemoGlossary } from '@/lib/demo-data';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminGlossaryPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user, profile, isDemoMode } = await getCurrentSession();
 
-  if (!user) {
+  if (!user || profile?.role !== 'admin') {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, organisations(name)')
-    .eq('id', user.id)
-    .single();
+  let entries: any[] = [];
+  if (!isDemoMode) {
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from('glossary')
+        .select('*')
+        .order('preferred', { ascending: true });
+      if (data && data.length > 0) {
+        entries = data;
+      }
+    } catch {
+      // Fallback to demo
+    }
+  }
 
-  const { data: entries } = await supabase
-    .from('glossary')
-    .select('*')
-    .order('preferred', { ascending: true });
+  if (entries.length === 0) {
+    entries = getDemoGlossary();
+  }
 
   return (
     <AppLayout
-      userEmail={user!.email!}
-      fullName={profile?.full_name || 'Admin'}
-      role={profile?.role || 'admin'}
-      orgName={profile?.organisations?.name || 'PayNest'}
+      userEmail={user.email}
+      fullName={profile.full_name}
+      role={profile.role}
+      orgName={profile.organisations?.name || 'PayNest'}
     >
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
@@ -42,7 +52,7 @@ export default async function AdminGlossaryPage() {
           </div>
         </div>
 
-        <GlossaryClient initialEntries={entries || []} />
+        <GlossaryClient initialEntries={entries} />
       </div>
     </AppLayout>
   );

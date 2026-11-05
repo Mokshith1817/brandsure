@@ -1,36 +1,24 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { user, profile } = await getCurrentSession();
 
-  if (!user) {
+  if (!user || !profile) {
     redirect('/login');
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
-    // If profile not yet linked, send to drafts
-    redirect('/drafts');
   }
 
   switch (profile.role) {
     case 'admin':
       redirect('/admin/guidelines');
     case 'manager':
-      redirect('/approvals');
+      redirect('/audit');
     case 'reviewer':
-      redirect('/reviews');
+      redirect('/rules');
     case 'creator':
     default:
-      redirect('/drafts');
+      redirect('/rules');
   }
 }
