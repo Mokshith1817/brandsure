@@ -14,6 +14,8 @@ import type {
   Channel,
   Comment,
   Decision,
+  Severity,
+  SourceType,
 } from '@/types/database';
 
 export const DEMO_PROFILES: Record<string, { role: Role; full_name: string }> = {
@@ -583,11 +585,22 @@ export function createDemoDraftVersion(params: {
   draftId: string;
   body: string;
   creatorId: string;
+  findings?: Array<{
+    category: string;
+    severity: Severity;
+    span_text: string;
+    reason: string;
+    source_type: SourceType;
+    source_id: string | null;
+    source_excerpt: string;
+    suggested_fix: string;
+  }>;
 }) {
   const existing = inMemoryDraftVersions.filter((v) => v.draft_id === params.draftId);
   const nextVerNo = existing.length + 1;
+  const versionId = `version-${Date.now()}`;
   const newVersion: DraftVersion = {
-    id: `version-${Date.now()}`,
+    id: versionId,
     draft_id: params.draftId,
     version_no: nextVerNo,
     body: params.body,
@@ -595,7 +608,29 @@ export function createDemoDraftVersion(params: {
     created_at: new Date().toISOString(),
   };
 
-  inMemoryDraftVersions.push(newVersion);
+  inMemoryDraftVersions.unshift(newVersion);
+
+  if (params.findings && params.findings.length > 0) {
+    const newFindings: Finding[] = params.findings.map((f, idx) => ({
+      id: `finding-${Date.now()}-${idx}`,
+      draft_version_id: versionId,
+      category: f.category,
+      severity: f.severity,
+      span_text: f.span_text,
+      reason: f.reason,
+      source_type: f.source_type,
+      source_id: f.source_id,
+      source_excerpt: f.source_excerpt,
+      suggested_fix: f.suggested_fix,
+      status: 'open',
+      decision_reason: null,
+      decided_by: null,
+      decided_at: null,
+      ai_generated: true,
+      created_at: new Date().toISOString(),
+    }));
+    inMemoryFindings.unshift(...newFindings);
+  }
 
   const draft = inMemoryDrafts.find((d) => d.id === params.draftId);
   if (draft) {
@@ -604,6 +639,15 @@ export function createDemoDraftVersion(params: {
   }
 
   return newVersion;
+}
+
+export function getDemoOpenHighFindingsCount(draftId: string): number {
+  const versions = inMemoryDraftVersions.filter((v) => v.draft_id === draftId).sort((a, b) => b.version_no - a.version_no);
+  if (versions.length === 0) return 0;
+  const latestVerId = versions[0].id;
+  return inMemoryFindings.filter(
+    (f) => f.draft_version_id === latestVerId && f.severity === 'high' && f.status === 'open'
+  ).length;
 }
 
 export function isSupabaseConfigured(): boolean {

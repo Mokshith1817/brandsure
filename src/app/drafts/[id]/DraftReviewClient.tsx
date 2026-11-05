@@ -216,6 +216,13 @@ export function DraftReviewClient({
 
   // Submit Draft for Review
   const handleSubmitForReview = async () => {
+    if (counts.high > 0) {
+      toast.error(
+        `Cannot submit for review: ${counts.high} HIGH severity finding(s) are still open. Please accept, edit, or dismiss them with a justification.`
+      );
+      return;
+    }
+
     setSubmittingReview(true);
     try {
       const res = await submitDraftForReview(draft.id);

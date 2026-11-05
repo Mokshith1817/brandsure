@@ -253,6 +253,7 @@ export async function createNewVersion(draftId: string, newBody: string) {
     draftId,
     body: trimmed,
     creatorId: user.id,
+    findings: agentRes.findings,
   });
 
   addDemoAuditLog({

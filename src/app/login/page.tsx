@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { loginAction } from '@/app/actions/auth';
 import { ShieldCheck, ArrowRight, Lock, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -185,6 +186,30 @@ export default function LoginPage() {
               Password for all accounts: <span className="font-mono text-slate-600 font-semibold">PayNest2026!</span>
             </p>
           </div>
+        </div>
+
+        {/* Public Demo Guide & AI Disclosure Links */}
+        <div className="mt-6 flex items-center justify-center gap-3 text-xs font-medium text-slate-500">
+          <Link
+            href="/demo-guide"
+            className="hover:text-indigo-600 transition-colors underline underline-offset-4"
+          >
+            Judge Demo Guide & Walkthrough
+          </Link>
+          <span>•</span>
+          <Link
+            href="/about-ai"
+            className="hover:text-indigo-600 transition-colors underline underline-offset-4"
+          >
+            AI Disclosure
+          </Link>
+          <span>•</span>
+          <Link
+            href="/rules"
+            className="hover:text-indigo-600 transition-colors underline underline-offset-4"
+          >
+            Rulebook
+          </Link>
         </div>
       </div>
     </div>

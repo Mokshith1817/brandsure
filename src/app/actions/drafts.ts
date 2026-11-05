@@ -11,6 +11,7 @@ import {
   updateDemoDraftBody,
   updateDemoDraftStatus,
   addDemoAuditLog,
+  getDemoOpenHighFindingsCount,
 } from '@/lib/demo-data';
 import type { Channel, FindingStatus, DraftStatus } from '@/types/database';
 import { revalidatePath } from 'next/cache';
@@ -289,6 +290,38 @@ export async function submitDraftForReview(draftId: string) {
   if (isSupabaseConfigured() && !isDemoMode) {
     try {
       const supabase = await createClient();
+
+      // Enforce: no HIGH severity finding is still 'open'
+      const { data: draft } = await supabase
+        .from('drafts')
+        .select('current_version')
+        .eq('id', draftId)
+        .single();
+
+      if (draft) {
+        const { data: latestVer } = await supabase
+          .from('draft_versions')
+          .select('id')
+          .eq('draft_id', draftId)
+          .eq('version_no', draft.current_version)
+          .single();
+
+        if (latestVer) {
+          const { count } = await supabase
+            .from('findings')
+            .select('*', { count: 'exact', head: true })
+            .eq('draft_version_id', latestVer.id)
+            .eq('severity', 'high')
+            .eq('status', 'open');
+
+          if (count && count > 0) {
+            return {
+              error: `Cannot submit for review: ${count} HIGH severity finding(s) are still open. Please accept, edit, or dismiss them with a justification.`,
+            };
+          }
+        }
+      }
+
       await supabase
         .from('drafts')
         .update({ status: 'in_review' })
@@ -307,6 +340,14 @@ export async function submitDraftForReview(draftId: string) {
     } catch {
       // Fallback
     }
+  }
+
+  // Demo Mode: Enforce no open HIGH severity finding
+  const openHighCount = getDemoOpenHighFindingsCount(draftId);
+  if (openHighCount > 0) {
+    return {
+      error: `Cannot submit for review: ${openHighCount} HIGH severity finding(s) are still open. Please accept, edit, or dismiss them with a justification.`,
+    };
   }
 
   updateDemoDraftStatus(draftId, 'in_review');
