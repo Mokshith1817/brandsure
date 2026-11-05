@@ -12,6 +12,8 @@ import type {
   FindingStatus,
   DraftStatus,
   Channel,
+  Comment,
+  Decision,
 } from '@/types/database';
 
 export const DEMO_PROFILES: Record<string, { role: Role; full_name: string }> = {
@@ -470,6 +472,138 @@ export function updateDemoDraftStatus(draftId: string, status: DraftStatus) {
     draft.status = status;
   }
   return draft;
+}
+
+let inMemoryComments: (Comment & { profiles?: Profile })[] = [
+  {
+    id: 'comment-demo-1',
+    draft_id: 'draft-demo-1',
+    author_id: 'demo-reviewer',
+    body: "Please address the superlative claim 'fastest in India'. PayNest fact-app-speed only substantiates 2x benchmark speed compared to v1.0.",
+    created_at: new Date(Date.now() - 3600000 * 1.5).toISOString(),
+    profiles: {
+      id: 'demo-reviewer',
+      org_id: DEMO_ORG.id,
+      full_name: 'PayNest Reviewer',
+      role: 'reviewer',
+      created_at: new Date().toISOString(),
+    },
+  },
+];
+
+let inMemoryDecisions: (Decision & { profiles?: Profile })[] = [
+  {
+    id: 'decision-demo-1',
+    draft_id: 'draft-demo-3',
+    decided_by: 'demo-manager',
+    decision: 'approved',
+    reason: 'Compliant copy fully grounded in fact-upi-fee. Approved for publication across digital channels.',
+    created_at: new Date(Date.now() - 3600000 * 20).toISOString(),
+    profiles: {
+      id: 'demo-manager',
+      org_id: DEMO_ORG.id,
+      full_name: 'PayNest Compliance Manager',
+      role: 'manager',
+      created_at: new Date().toISOString(),
+    },
+  },
+];
+
+export function getDemoComments(draftId: string) {
+  return inMemoryComments.filter((c) => c.draft_id === draftId);
+}
+
+export function addDemoComment(params: {
+  draftId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: Role;
+  body: string;
+}) {
+  const newComment = {
+    id: `comment-${Date.now()}`,
+    draft_id: params.draftId,
+    author_id: params.authorId,
+    body: params.body,
+    created_at: new Date().toISOString(),
+    profiles: {
+      id: params.authorId,
+      org_id: DEMO_ORG.id,
+      full_name: params.authorName,
+      role: params.authorRole,
+      created_at: new Date().toISOString(),
+    },
+  };
+  inMemoryComments.push(newComment);
+  return newComment;
+}
+
+export function getDemoDecisions(draftId: string) {
+  return inMemoryDecisions.filter((d) => d.draft_id === draftId);
+}
+
+export function recordDemoDecision(params: {
+  draftId: string;
+  decidedBy: string;
+  deciderName: string;
+  deciderRole: Role;
+  decision: 'approved' | 'rejected' | 'changes_requested';
+  reason: string;
+}) {
+  const newDecision = {
+    id: `decision-${Date.now()}`,
+    draft_id: params.draftId,
+    decided_by: params.decidedBy,
+    decision: params.decision,
+    reason: params.reason,
+    created_at: new Date().toISOString(),
+    profiles: {
+      id: params.decidedBy,
+      org_id: DEMO_ORG.id,
+      full_name: params.deciderName,
+      role: params.deciderRole,
+      created_at: new Date().toISOString(),
+    },
+  };
+  inMemoryDecisions.push(newDecision);
+
+  // Update draft status
+  updateDemoDraftStatus(params.draftId, params.decision);
+
+  return newDecision;
+}
+
+export function getDemoDraftVersions(draftId: string) {
+  return inMemoryDraftVersions
+    .filter((v) => v.draft_id === draftId)
+    .sort((a, b) => b.version_no - a.version_no);
+}
+
+export function createDemoDraftVersion(params: {
+  draftId: string;
+  body: string;
+  creatorId: string;
+}) {
+  const existing = inMemoryDraftVersions.filter((v) => v.draft_id === params.draftId);
+  const nextVerNo = existing.length + 1;
+  const newVersion: DraftVersion = {
+    id: `version-${Date.now()}`,
+    draft_id: params.draftId,
+    version_no: nextVerNo,
+    body: params.body,
+    created_by: params.creatorId,
+    created_at: new Date().toISOString(),
+  };
+
+  inMemoryDraftVersions.push(newVersion);
+
+  const draft = inMemoryDrafts.find((d) => d.id === params.draftId);
+  if (draft) {
+    draft.current_version = nextVerNo;
+    draft.status = 'checked';
+  }
+
+  return newVersion;
 }
 
 export function isSupabaseConfigured(): boolean {
