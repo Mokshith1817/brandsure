@@ -1,5 +1,5 @@
 {
-  "evaluated_at": "2026-11-05T08:14:35.022Z",
+  "evaluated_at": "2026-11-05T13:04:21.174Z",
   "total_drafts": 12,
   "flawed_drafts": 6,
   "clean_drafts": 6,
@@ -45,7 +45,7 @@
       "passed": true,
       "expected_count": 2,
       "detected_count": 2,
-      "duration_ms": 269,
+      "duration_ms": 304,
       "findings": [
         {
           "category": "claims",
@@ -120,7 +120,7 @@
       "passed": true,
       "expected_count": 3,
       "detected_count": 3,
-      "duration_ms": 0,
+      "duration_ms": 1,
       "findings": [
         {
           "category": "terminology",
@@ -184,7 +184,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 179,
+      "duration_ms": 164,
       "findings": []
     },
     {
@@ -194,7 +194,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 85,
+      "duration_ms": 97,
       "findings": []
     },
     {
@@ -204,7 +204,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 178,
+      "duration_ms": 160,
       "findings": []
     },
     {
@@ -214,7 +214,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 82,
+      "duration_ms": 96,
       "findings": []
     },
     {
@@ -224,7 +224,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 182,
+      "duration_ms": 157,
       "findings": []
     },
     {
@@ -234,7 +234,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 88,
+      "duration_ms": 112,
       "findings": []
     }
   ]

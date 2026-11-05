@@ -10,6 +10,10 @@ import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { AIBadge } from '@/components/ui/AIBadge';
 import { SourceCitation } from '@/components/ui/SourceCitation';
 import { DiffView } from '@/components/ui/DiffView';
+import { StatusStepper } from '@/components/ui/StatusStepper';
+import { NextStepBanner } from '@/components/ui/NextStepBanner';
+import { GuidedTour } from '@/components/ui/GuidedTour';
+import { AgentProgressTimeline } from '@/components/ui/AgentProgressTimeline';
 import { formatDate } from '@/lib/utils';
 import {
   Check,
@@ -30,6 +34,12 @@ import {
   Layers,
   History,
   MessageCircle,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Undo2,
+  Eye,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -58,6 +68,7 @@ export function DraftReviewClient({
   const [draftStatus, setDraftStatus] = useState(draft.status);
   const [findings, setFindings] = useState<Finding[]>(initialFindings);
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [expandedResolvedId, setExpandedResolvedId] = useState<string | null>(null);
 
   // Edit finding states
   const [editingFindingId, setEditingFindingId] = useState<string | null>(null);
@@ -84,6 +95,10 @@ export function DraftReviewClient({
   const [showNewVersionModal, setShowNewVersionModal] = useState(false);
   const [newVersionBody, setNewVersionBody] = useState(currentText);
   const [submittingVersion, setSubmittingVersion] = useState(false);
+
+  // Tour and Trace state
+  const [showTour, setShowTour] = useState(false);
+  const [showTrace, setShowTrace] = useState(false);
 
   const [submittingReview, setSubmittingReview] = useState(false);
 
@@ -214,6 +229,32 @@ export function DraftReviewClient({
     }
   };
 
+  // Handle Undo / Reopen Finding
+  const handleUndoFinding = async (finding: Finding) => {
+    try {
+      const res = await updateFindingDisposition({
+        draftId: draft.id,
+        findingId: finding.id,
+        status: 'open',
+        decisionReason: undefined,
+      });
+
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+
+      setFindings((prev) =>
+        prev.map((f) =>
+          f.id === finding.id ? { ...f, status: 'open', decision_reason: null } : f
+        )
+      );
+      toast.info('Finding reopened for review');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reopen finding');
+    }
+  };
+
   // Submit Draft for Review
   const handleSubmitForReview = async () => {
     if (counts.high > 0) {
@@ -329,6 +370,27 @@ export function DraftReviewClient({
     }
   };
 
+  // Bi-directional click handlers
+  const handleSpanClick = (findingId: string) => {
+    setSelectedFindingId(findingId);
+    setActiveTab('findings');
+    const el = document.getElementById(`finding-card-${findingId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.remove('animate-pulse-card');
+      void el.offsetWidth;
+      el.classList.add('animate-pulse-card');
+    }
+  };
+
+  const handleCardClick = (findingId: string) => {
+    setSelectedFindingId(findingId);
+    const spanEl = document.getElementById(`span-${findingId}`);
+    if (spanEl) {
+      spanEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   // Render text with interactive span highlights
   const renderHighlightedContent = () => {
     if (!currentText) return null;
@@ -374,16 +436,12 @@ export function DraftReviewClient({
       segments.push(
         <mark
           key={`span-${i}`}
-          onClick={() => {
-            setSelectedFindingId(span.id);
-            setActiveTab('findings');
-            const el = document.getElementById(`finding-card-${span.id}`);
-            el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }}
-          className={`px-1 py-0.5 rounded transition-all cursor-pointer inline-block ${
+          id={`span-${span.id}`}
+          onClick={() => handleSpanClick(span.id)}
+          className={`px-1.5 py-0.5 rounded transition-all cursor-pointer inline-block ${
             severityStyles[span.severity]
           }`}
-          title={`Click to inspect finding: ${span.span_text}`}
+          title={`Click to inspect issue: ${span.span_text}`}
         >
           {span.span_text}
         </mark>
@@ -403,11 +461,77 @@ export function DraftReviewClient({
     );
   };
 
+  // Next Step banner calculations
+  let nextStepInfo: {
+    statusTitle: string;
+    explanation: string;
+    actionText: string;
+    variant: 'info' | 'success' | 'warning';
+    actionHref?: string;
+    onActionClick?: () => void;
+  } = {
+    statusTitle: 'Resolve High-Severity Items',
+    explanation: `${counts.high} high-severity issue(s) remain open. You must accept or edit the suggested fix, or provide a written dismissal waiver before submitting.`,
+    actionText: 'Scroll to Open Issues',
+    variant: 'warning',
+    onActionClick: () => {
+      const firstHigh = openFindings.find((f) => f.severity === 'high');
+      if (firstHigh) {
+        handleSpanClick(firstHigh.id);
+      }
+    },
+  };
+
+  if (counts.high === 0 && openFindings.length > 0) {
+    nextStepInfo = {
+      statusTitle: 'Review Remaining Items or Submit',
+      explanation: 'All high-severity rules are satisfied. You may accept the remaining suggestions or submit your draft directly to the review queue.',
+      actionText: 'Submit for Review',
+      variant: 'info',
+      onActionClick: handleSubmitForReview,
+    };
+  } else if (openFindings.length === 0 && draftStatus === 'checked') {
+    nextStepInfo = {
+      statusTitle: 'All Compliance Checks Passed',
+      explanation: 'Zero open compliance issues remain in this draft version. Submit your copy for team review and compliance sign-off.',
+      actionText: 'Submit for Review',
+      variant: 'success',
+      onActionClick: handleSubmitForReview,
+    };
+  } else if (draftStatus === 'in_review') {
+    nextStepInfo = {
+      statusTitle: 'Waiting for Team Review',
+      explanation: 'Your draft has been submitted. Reviewers can leave comments, and the compliance manager will review and approve.',
+      actionText: 'View Comments',
+      variant: 'info',
+      onActionClick: () => setActiveTab('comments'),
+    };
+  } else if (draftStatus === 'approved') {
+    nextStepInfo = {
+      statusTitle: 'Approved for Publication',
+      explanation: 'This draft has been officially approved by the Compliance Manager. Content is locked and ready for digital marketing distribution.',
+      actionText: 'Create Another Draft',
+      variant: 'success',
+      actionHref: '/drafts/new',
+    };
+  } else if (draftStatus === 'changes_requested') {
+    nextStepInfo = {
+      statusTitle: 'Changes Requested by Manager',
+      explanation: 'The compliance manager requested revisions. Review their written justification, edit your text, and save as a new version.',
+      actionText: 'Revise Draft Text',
+      variant: 'warning',
+      onActionClick: () => setShowNewVersionModal(true),
+    };
+  }
+
   return (
     <div className="space-y-6">
+      {/* Guided Tour Modal */}
+      <GuidedTour forceOpen={showTour} onClose={() => setShowTour(false)} />
+
       {/* Manager Decision Banner for Compliance Authority */}
       {isManagerOrAdmin && (
-        <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-emerald-400" />
@@ -428,7 +552,7 @@ export function DraftReviewClient({
                 setDecisionModal({ open: true, type: 'approved' });
                 setDecisionReason('Copy fully satisfies PayNest brand guidelines and regulatory disclosures.');
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-xs transition-all tap-target-44 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Approve Copy</span>
@@ -440,7 +564,7 @@ export function DraftReviewClient({
                 setDecisionModal({ open: true, type: 'changes_requested' });
                 setDecisionReason('Please revise copy according to reviewer suggestions before resubmission.');
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg shadow-xs transition-all tap-target-44 focus:outline-none focus:ring-2 focus:ring-amber-400"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Request Changes</span>
@@ -452,7 +576,7 @@ export function DraftReviewClient({
                 setDecisionModal({ open: true, type: 'rejected' });
                 setDecisionReason('Contains non-compliant financial guarantees that cannot be published.');
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg shadow-xs transition-all tap-target-44 focus:outline-none focus:ring-2 focus:ring-red-400"
             >
               <Ban className="w-4 h-4" />
               <span>Reject</span>
@@ -461,94 +585,65 @@ export function DraftReviewClient({
         </div>
       )}
 
-      {/* Draft Meta Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 font-bold uppercase text-xs">
-            {draft.channel}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 text-base">Version {version.version_no}</span>
-              <StatusBadge status={draftStatus} />
-            </div>
-            <span className="text-xs text-slate-400">Created {formatDate(draft.created_at)}</span>
-          </div>
-        </div>
+      {/* Progress Stepper & Next Step Banner */}
+      <StatusStepper status={draftStatus} />
+      <NextStepBanner {...nextStepInfo} />
 
-        {/* Action Controls & Navigation Tabs */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab('findings')}
-            className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'findings'
-                ? 'bg-white text-indigo-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Findings ({openFindings.length})</span>
-          </button>
+      {/* Collapsible Verification Timeline */}
+      <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+        <button
+          type="button"
+          onClick={() => setShowTrace(!showTrace)}
+          className="inline-flex items-center gap-1.5 font-medium hover:text-indigo-600 transition-colors tap-target-44"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-500" />
+          <span>{showTrace ? 'Hide verification engine trace' : 'Show verification engine trace'}</span>
+          {showTrace ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('comments')}
-            className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'comments'
-                ? 'bg-white text-indigo-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
-            <span>Comments ({comments.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('history')}
-            className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
-              activeTab === 'history'
-                ? 'bg-white text-indigo-700 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <History className="w-3.5 h-3.5 text-slate-500" />
-            <span>Version Diff</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowTour(true)}
+          className="inline-flex items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors tap-target-44"
+        >
+          <HelpCircle className="w-3.5 h-3.5 text-indigo-500" />
+          <span>How does review work?</span>
+        </button>
       </div>
 
-      {/* Main Two-Column Interactive Workspace */}
+      {showTrace && <AgentProgressTimeline isSimulated={false} />}
+
+      {/* Main Two-Column Review Layout (Desktop: 5 cols / 7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column (5 Cols): The Draft Content Display */}
-        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4 sticky top-24">
+        {/* Left Column (5 Cols): Draft Text & Highlighting */}
+        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-xs p-5 space-y-4 sticky lg:top-20">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-indigo-600" />
-              <h2 className="font-bold text-slate-900 text-sm">Active Draft Copy</h2>
+              <h2 className="font-bold text-slate-900 text-sm">Submitted Marketing Copy</h2>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
-              {currentText.length} chars
+            <span className="text-[11px] text-slate-500 font-mono">
+              Version {version.version_no} • {currentText.length} chars
             </span>
           </div>
 
-          <div className="p-4 bg-slate-50/80 rounded-lg border border-slate-200 min-h-[180px]">
+          {/* Interactive Highlighted Copy Area */}
+          <div className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-lg min-h-[180px] focus-within:ring-2 focus-within:ring-indigo-500">
             {renderHighlightedContent()}
           </div>
 
           <div className="text-[11px] text-slate-500 flex items-center gap-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
             <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Click any highlighted span to inspect its citation, reason, and intent-preserving rewrite.</span>
+            <span>Click any highlighted phrase to jump directly to its explanation and suggested fix.</span>
           </div>
 
-          {/* Submission and New Version Actions */}
+          {/* Submission and Version Actions */}
           <div className="pt-2 border-t border-slate-100 space-y-2">
             <button
               type="button"
               onClick={handleSubmitForReview}
               disabled={submittingReview || draftStatus === 'in_review' || draftStatus === 'approved'}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-xs transition-all tap-target-44 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submittingReview ? (
                 <>
@@ -579,7 +674,7 @@ export function DraftReviewClient({
                 setNewVersionBody(currentText);
                 setShowNewVersionModal(true);
               }}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition-colors tap-target-44"
             >
               <GitBranch className="w-3.5 h-3.5 text-slate-500" />
               <span>Save as New Version & Re-Evaluate</span>
@@ -589,46 +684,142 @@ export function DraftReviewClient({
 
         {/* Right Column (7 Cols): Tab Content */}
         <div className="lg:col-span-7 space-y-4">
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setActiveTab('findings')}
+              className={`flex-1 py-2 rounded-md transition-all flex items-center justify-center gap-1.5 tap-target-44 ${
+                activeTab === 'findings'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Problems Found ({openFindings.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('comments')}
+              className={`flex-1 py-2 rounded-md transition-all flex items-center justify-center gap-1.5 tap-target-44 ${
+                activeTab === 'comments'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Comments ({comments.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('history')}
+              className={`flex-1 py-2 rounded-md transition-all flex items-center justify-center gap-1.5 tap-target-44 ${
+                activeTab === 'history'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <History className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Version History ({allVersions.length || 1})</span>
+            </button>
+          </div>
+
           {/* TAB 1: Findings Workspace */}
           {activeTab === 'findings' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-1">
-                <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span>Governance Findings ({findings.length})</span>
-                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-800">Summary:</span>
+                  <span className="text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded font-semibold">
+                    {counts.high} High
+                  </span>
+                  <span className="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-semibold">
+                    {counts.medium} Medium
+                  </span>
+                  <span className="text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-semibold">
+                    {counts.low} Low
+                  </span>
+                </div>
                 <span className="text-xs text-slate-500">
                   {openFindings.length} open • {resolvedFindings.length} resolved
                 </span>
               </div>
 
               {findings.length === 0 ? (
-                <div className="bg-white border border-emerald-200 rounded-xl p-8 text-center shadow-sm">
+                <div className="bg-white border border-emerald-200 rounded-xl p-8 text-center shadow-xs">
                   <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-slate-900">Zero Violations Found</h3>
+                  <h3 className="text-base font-bold text-slate-900">Zero Problems Found</h3>
                   <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                    This marketing copy strictly aligns with PayNest approved rules, facts, and glossary nomenclature.
+                    This marketing copy strictly aligns with PayNest approved guidelines, verified facts, and glossary terminology.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {findings.map((finding) => {
                     const isSelected = selectedFindingId === finding.id;
                     const isOpen = finding.status === 'open';
+                    const isExpandedResolved = expandedResolvedId === finding.id;
+
+                    // If finding is resolved and not manually expanded, show clean collapsed row
+                    if (!isOpen && !isExpandedResolved) {
+                      return (
+                        <div
+                          key={finding.id}
+                          id={`finding-card-${finding.id}`}
+                          className="bg-slate-50/80 rounded-xl border border-slate-200 p-3.5 flex items-center justify-between gap-3 text-xs transition-all hover:bg-slate-100"
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="font-semibold text-slate-800 capitalize">
+                              {finding.status === 'accepted'
+                                ? 'Accepted Fix'
+                                : finding.status === 'edited'
+                                ? 'Custom Edit Applied'
+                                : 'Dismissed with Justification'}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="font-mono text-slate-600 truncate max-w-[220px]">
+                              "{finding.span_text}"
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleUndoFinding(finding)}
+                              className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2 tap-target-44 px-2"
+                              title="Reopen this finding"
+                            >
+                              Undo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedResolvedId(finding.id)}
+                              className="text-[11px] text-slate-500 hover:text-slate-700 px-2 py-1 rounded hover:bg-white border border-transparent hover:border-slate-200 transition-colors"
+                            >
+                              Show details
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
 
                     return (
                       <div
                         key={finding.id}
                         id={`finding-card-${finding.id}`}
-                        className={`bg-white rounded-xl border p-5 shadow-sm transition-all space-y-4 ${
+                        onClick={() => handleCardClick(finding.id)}
+                        className={`bg-white rounded-xl border p-5 shadow-xs transition-all space-y-4 ${
                           isSelected
-                            ? 'border-indigo-500 ring-2 ring-indigo-500/20'
+                            ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-sm'
                             : isOpen
                             ? 'border-slate-200 hover:border-slate-300'
-                            : 'border-slate-200/60 bg-slate-50/50 opacity-80'
+                            : 'border-slate-200 bg-slate-50/60'
                         }`}
                       >
-                        {/* Header */}
+                        {/* Card Top Row */}
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
@@ -637,38 +828,51 @@ export function DraftReviewClient({
                             <SeverityBadge severity={finding.severity} />
                             <AIBadge />
                           </div>
-                          <span
-                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize border ${
-                              finding.status === 'open'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : finding.status === 'accepted'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : finding.status === 'edited'
-                                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                : 'bg-slate-100 text-slate-600 border-slate-200'
-                            }`}
-                          >
-                            {finding.status}
-                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {!isOpen && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedResolvedId(null);
+                                }}
+                                className="text-[11px] text-slate-400 hover:text-slate-600"
+                              >
+                                Collapse
+                              </button>
+                            )}
+                            <span
+                              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize border ${
+                                finding.status === 'open'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : finding.status === 'accepted'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : finding.status === 'edited'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}
+                            >
+                              {finding.status}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Flagged Span */}
                         <div className="text-xs">
-                          <span className="text-slate-400 font-medium block mb-1">Flagged Content Span:</span>
+                          <span className="text-slate-400 font-medium block mb-1">Problem detected in copy:</span>
                           <span className="inline-block px-2.5 py-1 bg-red-50 text-red-900 border border-red-200 rounded font-mono font-semibold">
                             "{finding.span_text}"
                           </span>
                         </div>
 
-                        {/* Reason */}
+                        {/* Reason in Plain Language */}
                         <div className="text-xs space-y-1">
-                          <span className="text-slate-400 font-medium block">Compliance Reason:</span>
-                          <p className="text-slate-700 font-medium leading-relaxed">
-                            {finding.reason}
-                          </p>
+                          <span className="text-slate-400 font-medium block">Why this matters:</span>
+                          <p className="text-slate-700 font-medium leading-relaxed">{finding.reason}</p>
                         </div>
 
-                        {/* Source Citation */}
+                        {/* Expandable Source Citation (Progressive Disclosure) */}
                         <SourceCitation
                           sourceType={finding.source_type}
                           sourceId={finding.source_id}
@@ -677,12 +881,12 @@ export function DraftReviewClient({
 
                         {/* Suggested Fix */}
                         {finding.suggested_fix && (
-                          <div className="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 text-xs space-y-1.5">
+                          <div className="bg-indigo-50/50 p-3.5 rounded-lg border border-indigo-100 text-xs space-y-1.5">
                             <span className="font-bold text-indigo-950 flex items-center gap-1.5">
                               <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                              Suggested Intent-Preserving Fix:
+                              Suggested Safer Rewrite:
                             </span>
-                            <p className="text-indigo-900 font-medium bg-white p-2 rounded border border-indigo-200 font-mono">
+                            <p className="text-indigo-900 font-medium bg-white p-2.5 rounded border border-indigo-200 font-mono">
                               {finding.suggested_fix}
                             </p>
                           </div>
@@ -695,8 +899,11 @@ export function DraftReviewClient({
                               {finding.suggested_fix && (
                                 <button
                                   type="button"
-                                  onClick={() => handleAcceptFinding(finding)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAcceptFinding(finding);
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors tap-target-44"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Accept Fix</span>
@@ -705,46 +912,64 @@ export function DraftReviewClient({
 
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setEditingFindingId(finding.id);
                                   setCustomFixText(finding.suggested_fix || finding.span_text);
                                 }}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition-colors tap-target-44"
                               >
                                 <Edit2 className="w-3.5 h-3.5 text-slate-500" />
-                                <span>Custom Edit</span>
+                                <span>Edit Fix</span>
                               </button>
                             </div>
 
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setDismissingFindingId(finding.id);
                                 setDismissReason('');
                               }}
-                              className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-red-600 p-1.5 rounded transition-colors"
+                              className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-red-600 p-2 rounded transition-colors tap-target-44"
                             >
                               <X className="w-3.5 h-3.5" />
-                              <span>Dismiss with Reason</span>
+                              <span>Dismiss</span>
                             </button>
                           </div>
                         ) : (
-                          <div className="pt-2 border-t border-slate-100 text-xs bg-slate-50 p-2.5 rounded text-slate-600 space-y-0.5">
-                            <div className="flex items-center gap-1 font-semibold text-slate-800">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Resolved as {finding.status}</span>
+                          <div className="pt-2 border-t border-slate-100 text-xs bg-slate-50 p-2.5 rounded text-slate-600 flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1 font-semibold text-slate-800">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Resolved as {finding.status}</span>
+                              </div>
+                              {finding.decision_reason && (
+                                <p className="text-[11px] text-slate-500 italic pl-5">
+                                  Justification: "{finding.decision_reason}"
+                                </p>
+                              )}
                             </div>
-                            {finding.decision_reason && (
-                              <p className="text-[11px] text-slate-500 italic pl-5">
-                                Justification: "{finding.decision_reason}"
-                              </p>
-                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUndoFinding(finding);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline tap-target-44 px-2"
+                            >
+                              <Undo2 className="w-3.5 h-3.5" />
+                              <span>Undo</span>
+                            </button>
                           </div>
                         )}
 
-                        {/* Custom Edit Box */}
+                        {/* Inline Custom Edit Box */}
                         {editingFindingId === finding.id && (
-                          <div className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-lg space-y-2 mt-2">
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-3 bg-indigo-50/70 border border-indigo-200 rounded-lg space-y-2 mt-2 animate-fade-in-up"
+                          >
                             <label className="text-xs font-bold text-indigo-950 block">
                               Custom Replacement for "{finding.span_text}":
                             </label>
@@ -752,54 +977,55 @@ export function DraftReviewClient({
                               type="text"
                               value={customFixText}
                               onChange={(e) => setCustomFixText(e.target.value)}
-                              className="w-full text-xs p-2 bg-white border border-indigo-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              className="w-full text-xs p-2.5 bg-white border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-2 pt-1">
                               <button
                                 type="button"
                                 onClick={() => setEditingFindingId(null)}
-                                className="px-2.5 py-1 text-xs text-slate-600 bg-white border border-slate-200 rounded"
+                                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleSaveCustomEdit(finding)}
-                                className="px-3 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded"
+                                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs"
                               >
-                                Apply Custom Fix
+                                Apply Edit
                               </button>
                             </div>
                           </div>
                         )}
 
-                        {/* Dismissal Box */}
+                        {/* Inline Dismiss Justification Box */}
                         {dismissingFindingId === finding.id && (
-                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2 mt-2">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-950">
-                              <AlertTriangle className="w-4 h-4 text-amber-600" />
-                              <span>Mandatory Dismissal Justification</span>
-                            </div>
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg space-y-2 mt-2 animate-fade-in-up"
+                          >
+                            <label className="text-xs font-bold text-amber-950 block">
+                              Mandatory Written Justification for Dismissal:
+                            </label>
                             <textarea
                               rows={2}
                               value={dismissReason}
                               onChange={(e) => setDismissReason(e.target.value)}
-                              placeholder="State why this finding is being dismissed..."
-                              className="w-full text-xs p-2 bg-white border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-                              required
+                              placeholder="e.g. Legal waiver approved by brand compliance team (#304)"
+                              className="w-full text-xs p-2 bg-white border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                             />
                             <div className="flex justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => setDismissingFindingId(null)}
-                                className="px-2.5 py-1 text-xs text-slate-600 bg-white border border-slate-200 rounded"
+                                className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleConfirmDismiss(finding)}
-                                className="px-3 py-1 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded"
+                                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-amber-700 hover:bg-amber-800 rounded-lg shadow-xs"
                               >
                                 Confirm Dismissal
                               </button>
@@ -814,125 +1040,93 @@ export function DraftReviewClient({
             </div>
           )}
 
-          {/* TAB 2: Discussion & Comments */}
+          {/* TAB 2: Team Comments Discussion */}
           {activeTab === 'comments' && (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-6">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-indigo-600" />
-                  <span>Team Discussion & Feedback</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Reviewers, creators, and compliance managers communicate feedback on this copy draft.
-                </p>
+            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-indigo-600" />
+                  <h3 className="font-bold text-slate-900 text-sm">Reviewer & Manager Discussion</h3>
+                </div>
+                <span className="text-xs text-slate-400 font-mono">{comments.length} comments</span>
               </div>
 
-              {/* Comments Thread */}
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                {comments.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic text-center py-6">
-                    No comments yet. Leave a note or feedback below.
-                  </p>
-                ) : (
-                  comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5"
-                    >
+              {comments.length === 0 ? (
+                <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-lg border border-slate-100">
+                  <MessageSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  No comments yet. Reviewers and managers can add editorial feedback below.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {comments.map((c) => (
+                    <div key={c.id} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-lg space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-800">
-                            {comment.profiles?.full_name || 'Team Member'}
+                          <span className="font-bold text-slate-900">
+                            {c.profiles?.full_name || 'Team Member'}
                           </span>
-                          <span className="text-[10px] uppercase font-semibold bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
-                            {comment.profiles?.role || 'Reviewer'}
+                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
+                            {c.profiles?.role || 'team'}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {formatDate(comment.created_at)}
-                        </span>
+                        <span className="text-[11px] text-slate-400">{formatDate(c.created_at)}</span>
                       </div>
-                      <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                        {comment.body}
-                      </p>
+                      <p className="text-xs text-slate-700 leading-relaxed">{c.body}</p>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              {/* Add Comment Box */}
-              <form onSubmit={handleAddComment} className="pt-2 border-t border-slate-100 space-y-2">
+              {/* Add Comment Form */}
+              <form onSubmit={handleAddComment} className="space-y-2 pt-2 border-t border-slate-100">
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={newCommentBody}
                   onChange={(e) => setNewCommentBody(e.target.value)}
-                  placeholder="Leave review feedback or reply to compliance questions..."
-                  className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                  required
+                  placeholder="Leave an editorial comment for the creator..."
+                  className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <div className="flex justify-end">
                   <button
                     type="submit"
                     disabled={submittingComment || !newCommentBody.trim()}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-xs disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 tap-target-44"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>Post Comment</span>
+                    <span>{submittingComment ? 'Posting...' : 'Post Comment'}</span>
                   </button>
                 </div>
               </form>
             </div>
           )}
 
-          {/* TAB 3: Version Diff */}
+          {/* TAB 3: Version History & Visual DiffView */}
           {activeTab === 'history' && (
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-5">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
                   <History className="w-4 h-4 text-indigo-600" />
-                  <span>Version Comparison & Diff</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Visual word-level diff comparing original draft vs current corrected copy.
-                </p>
+                  <h3 className="font-bold text-slate-900 text-sm">Version Iteration & Diff Tracking</h3>
+                </div>
+                <span className="text-xs text-slate-400">Comparing Version {version.version_no}</span>
               </div>
 
-              {allVersions.length > 0 && allVersions[allVersions.length - 1].body !== currentText ? (
-                <div className="space-y-3">
-                  <span className="text-xs font-semibold text-slate-700 block">
-                    Diff: Initial Draft (v1) $\rightarrow$ Active Copy (v{version.version_no}):
-                  </span>
+              {allVersions.length <= 1 ? (
+                <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-lg border border-slate-100">
+                  <GitBranch className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  This is the initial version (v1). Save revised edits to compare changes with visual diffing.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-xs font-bold text-slate-800">
+                    Changes from Previous Version:
+                  </div>
                   <DiffView
-                    original={allVersions[allVersions.length - 1].body}
+                    original={allVersions[1]?.body || ''}
                     modified={currentText}
                   />
                 </div>
-              ) : (
-                <div className="p-6 bg-slate-50 rounded-lg border border-slate-200 text-center text-xs text-slate-500">
-                  <span>Current text is identical to the initial version. Accept fixes or edit text to view live diffs.</span>
-                </div>
               )}
-
-              {/* Past Versions List */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Version Archive
-                </h4>
-                <div className="space-y-2">
-                  {allVersions.map((v) => (
-                    <div
-                      key={v.id}
-                      className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between font-semibold text-slate-800">
-                        <span>Version {v.version_no} {v.version_no === version.version_no && '(Current)'}</span>
-                        <span className="text-[11px] text-slate-400 font-mono">{formatDate(v.created_at)}</span>
-                      </div>
-                      <p className="text-slate-600 line-clamp-2 italic">"{v.body}"</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
         </div>
@@ -940,31 +1134,39 @@ export function DraftReviewClient({
 
       {/* Manager Decision Modal */}
       {decisionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-indigo-600" />
-              <h3 className="font-bold text-base text-slate-900 capitalize">
-                Confirm {decisionModal.type.replace('_', ' ')}
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-bold text-slate-900 text-base capitalize">
+                  Record Managerial Verdict: {decisionModal.type.replace('_', ' ')}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDecisionModal(null)}
+                className="text-slate-400 hover:text-slate-600 tap-target-44 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Regulatory governance requires an explicit written justification for every managerial decision.
-              This verdict is permanently sealed into the append-only audit trail.
-            </p>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Mandatory Written Justification:
+            <div className="space-y-2 text-xs">
+              <label className="font-bold text-slate-800 block">
+                Mandatory Written Justification (Permanent in Audit Log):
               </label>
               <textarea
                 rows={3}
+                required
                 value={decisionReason}
                 onChange={(e) => setDecisionReason(e.target.value)}
-                placeholder="State regulatory, brand, or factual reasons for this decision..."
-                className="w-full text-xs p-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
+                placeholder="Explain the regulatory or editorial rationale for this verdict..."
+                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -972,7 +1174,7 @@ export function DraftReviewClient({
               <button
                 type="button"
                 onClick={() => setDecisionModal(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg tap-target-44"
               >
                 Cancel
               </button>
@@ -980,47 +1182,66 @@ export function DraftReviewClient({
                 type="button"
                 disabled={submittingDecision || !decisionReason.trim()}
                 onClick={handleRecordDecision}
-                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50"
+                className={`px-4 py-2 text-xs font-semibold text-white rounded-lg shadow-xs tap-target-44 disabled:opacity-50 ${
+                  decisionModal.type === 'approved'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : decisionModal.type === 'changes_requested'
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
               >
-                {submittingDecision ? 'Recording Decision...' : 'Confirm Verdict'}
+                {submittingDecision ? 'Recording...' : `Confirm ${decisionModal.type.replace('_', ' ')}`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Save as New Version Modal */}
+      {/* New Version Modal */}
       {showNewVersionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-xl border border-slate-200 max-w-xl w-full p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-indigo-600" />
-              <h3 className="font-bold text-base text-slate-900">
-                Save as New Version & Re-Evaluate
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full p-6 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <GitBranch className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-bold text-slate-900 text-base">
+                  Save as Version {(version.version_no || 1) + 1} & Re-Evaluate
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNewVersionModal(false)}
+                className="text-slate-400 hover:text-slate-600 tap-target-44 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <p className="text-xs text-slate-600">
-              Creating a new version automatically executes the bounded Review Agent on the revised copy and captures a fresh set of findings.
-            </p>
 
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Revised Content Body:
+            <div className="space-y-2 text-xs">
+              <label className="font-bold text-slate-800 block">
+                Revised Draft Content:
               </label>
               <textarea
                 rows={5}
+                required
                 value={newVersionBody}
                 onChange={(e) => setNewVersionBody(e.target.value)}
-                className="w-full text-xs p-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
+                className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
               />
+              <p className="text-[11px] text-slate-500">
+                Saving will create an immutable revision snapshot and automatically run compliance checks against the approved rulebook.
+              </p>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowNewVersionModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg tap-target-44"
               >
                 Cancel
               </button>
@@ -1028,9 +1249,9 @@ export function DraftReviewClient({
                 type="button"
                 disabled={submittingVersion || !newVersionBody.trim()}
                 onClick={handleCreateNewVersion}
-                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50"
+                className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-xs tap-target-44 disabled:opacity-50"
               >
-                {submittingVersion ? 'Creating Version...' : 'Create Version'}
+                {submittingVersion ? 'Evaluating...' : 'Save & Check Version'}
               </button>
             </div>
           </div>

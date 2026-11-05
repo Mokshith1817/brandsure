@@ -8,6 +8,7 @@ import { getDemoDrafts, isSupabaseConfigured } from '@/lib/demo-data';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { NextStepBanner } from '@/components/ui/NextStepBanner';
 import { formatDate } from '@/lib/utils';
 import { CheckSquare, ArrowRight, Share2, Mail, Megaphone, BookOpen, FileText } from 'lucide-react';
 import type { Channel } from '@/types/database';
@@ -98,6 +99,15 @@ export default async function ReviewQueuePage() {
             Review marketing copy submitted by creators. Inspect AI findings, verify creator dispositions, and leave feedback comments.
           </p>
         </div>
+
+        {/* Next Step Guidance Banner */}
+        <NextStepBanner
+          statusTitle="Inspect Submitted Drafts & Leave Feedback"
+          explanation="Select any draft in the queue to examine flagged content, verify creator dispositions, check version diffs, and leave editorial commentary."
+          actionText="Inspect First Queue Item"
+          actionHref={queueDrafts[0] ? `/drafts/${queueDrafts[0].id}` : '/drafts'}
+          variant="info"
+        />
 
         {queueDrafts.length === 0 ? (
           <EmptyState

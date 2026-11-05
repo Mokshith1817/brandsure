@@ -3,11 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import type { Role } from '@/types/database';
-import { ShieldCheck, LogOut, User, Building2, BookOpen } from 'lucide-react';
+import { ShieldCheck, LogOut, User, Building2, BookOpen, Compass } from 'lucide-react';
 import { toast } from 'sonner';
-
+import { TextSizeControl } from '@/components/ui/TextSizeControl';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { logoutAction } from '@/app/actions/auth';
 
 interface TopBarProps {
@@ -41,11 +41,11 @@ export function TopBar({
   };
 
   return (
-    <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between">
+    <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between transition-colors">
       {/* Brand & Organization */}
       <div className="flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2 font-bold text-slate-900 tracking-tight text-lg">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
             <ShieldCheck className="w-5 h-5" aria-hidden="true" />
           </div>
           <span>BrandSure</span>
@@ -57,15 +57,23 @@ export function TopBar({
         </div>
       </div>
 
-      {/* User info, Role Badge, and Actions */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* User Controls: Text Size, Theme, Role Badge, Demo Guide, Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Text Size Control */}
+        <div className="hidden sm:block">
+          <TextSizeControl />
+        </div>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Quick Demo Guide Link for Judges */}
         <Link
           href="/demo-guide"
-          className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors shadow-xs"
+          className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors shadow-xs tap-target-44"
           title="Open Judge & Evaluator Demo Guide"
         >
-          <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+          <Compass className="w-3.5 h-3.5 text-indigo-600" />
           <span>Demo Guide</span>
         </Link>
 
@@ -75,7 +83,7 @@ export function TopBar({
         </span>
 
         {/* User name & email */}
-        <div className="hidden sm:flex flex-col text-right">
+        <div className="hidden lg:flex flex-col text-right">
           <span className="text-xs font-semibold text-slate-800">{fullName || 'Demo User'}</span>
           <span className="text-[11px] text-slate-400 truncate max-w-[150px]">{userEmail}</span>
         </div>
@@ -84,7 +92,7 @@ export function TopBar({
         <button
           type="button"
           onClick={handleLogout}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-red-600 p-2 rounded-md hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-red-600 p-2 rounded-md hover:bg-slate-50 transition-colors tap-target-44 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           title="Sign out of BrandSure"
           aria-label="Sign out"
         >

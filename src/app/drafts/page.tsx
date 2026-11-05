@@ -8,6 +8,7 @@ import { getDemoDrafts, isSupabaseConfigured } from '@/lib/demo-data';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { NextStepBanner } from '@/components/ui/NextStepBanner';
 import { formatDate } from '@/lib/utils';
 import {
   PlusCircle,
@@ -107,6 +108,15 @@ export default async function DraftsListPage() {
             <span>Create New Draft</span>
           </Link>
         </div>
+
+        {/* Next Step Guidance Banner */}
+        <NextStepBanner
+          statusTitle="Submit a Draft for Compliance Review"
+          explanation="Create new marketing copy across social, email, ad, or blog channels. The bounded review agent will verify claims against approved brand guidelines and facts."
+          actionText="Create New Draft"
+          actionHref="/drafts/new"
+          variant="info"
+        />
 
         {/* Drafts List Table */}
         {drafts.length === 0 ? (

@@ -8,6 +8,7 @@ import { getDemoDrafts, isSupabaseConfigured } from '@/lib/demo-data';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { NextStepBanner } from '@/components/ui/NextStepBanner';
 import { formatDate } from '@/lib/utils';
 import {
   ShieldAlert,
@@ -112,6 +113,15 @@ export default async function ApprovalsQueuePage() {
             Final gatekeeper authorization point. The AI Review Agent flags issues and suggests fixes, but <strong>only Compliance Managers decide</strong> whether to approve, reject, or request revisions.
           </p>
         </div>
+
+        {/* Next Step Guidance Banner */}
+        <NextStepBanner
+          statusTitle="Authorize Marketing Copy for Dissemination"
+          explanation="Select a pending draft to examine citations, verify creator changes, and record an immutable approval, revision request, or rejection with justification."
+          actionText="Review First Approval Item"
+          actionHref={pendingDrafts[0] ? `/drafts/${pendingDrafts[0].id}` : '/drafts'}
+          variant={pendingDrafts.length > 0 ? 'warning' : 'success'}
+        />
 
         {/* Pending Decisions Section */}
         <div className="space-y-4">
