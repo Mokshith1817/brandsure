@@ -76,6 +76,7 @@ export async function middleware(request: NextRequest) {
   // Public paths allowed without login
   const isPublicPath =
     pathname === '/login' ||
+    pathname.startsWith('/showcase') ||
     pathname.startsWith('/about-ai') ||
     pathname.startsWith('/demo-guide') ||
     pathname.startsWith('/_next') ||

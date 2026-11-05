@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Role } from '@/types/database';
-import { ShieldCheck, LogOut, User, Building2, BookOpen, Compass } from 'lucide-react';
+import { ShieldCheck, LogOut, User, Building2, BookOpen, Compass, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { TextSizeControl } from '@/components/ui/TextSizeControl';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -75,6 +75,16 @@ export function TopBar({
         >
           <Compass className="w-3.5 h-3.5 text-indigo-600" />
           <span>Demo Guide</span>
+        </Link>
+
+        {/* Showcase Link */}
+        <Link
+          href="/showcase"
+          className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-lg transition-colors shadow-xs tap-target-44"
+          title="Open Cinematic Showcase"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Showcase</span>
         </Link>
 
         {/* Role badge */}

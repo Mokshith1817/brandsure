@@ -14,8 +14,23 @@ module.exports = {
         signal: "var(--color-signal)",
         acid: "var(--acid)",
         blush: "var(--blush)",
+        void: '#05070c',
+        regolith: '#c9ccd3',
+        earth: '#6fb6ff',
+        indigoBrand: '#4f46e5',
+        sunlit: '#f2e6c9',
+        borderMuted: '#1b2230',
+        borderActive: '#2b3648',
+        complianceGreen: '#10b981',
+        alertAmber: '#f59e0b',
+        hazardRed: '#ef4444',
+      },
+      letterSpacing: {
+        widestHero: '0.28em',
       },
       fontFamily: {
+        michroma: ['Michroma', 'sans-serif'],
+        ibm: ['"IBM Plex Mono"', 'monospace'],
         editorial: ["var(--font-editorial)", "Georgia", "serif"],
         display: [
           "var(--font-display)",

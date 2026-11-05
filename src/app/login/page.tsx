@@ -78,16 +78,28 @@ export default function LoginPage() {
           Pre-publication brand governance for fintech teams. Protect your brand with citation-backed compliance checks before copy reaches customers.
         </p>
 
-        {/* Highlighted Judge Demo Banner */}
-        <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs mt-1">
-          <Compass className="w-3.5 h-3.5 text-indigo-600" aria-hidden="true" />
-          <span>Hackathon Evaluator?</span>
+        {/* Highlighted Judge Demo & Showcase Banners */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
           <Link
-            href="/demo-guide"
-            className="underline underline-offset-2 hover:text-indigo-900 font-bold"
+            href="/showcase"
+            className="inline-flex items-center gap-1.5 bg-slate-900 text-cyan-300 border border-slate-700 hover:border-cyan-400 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-colors"
           >
-            Open 8-Step Demo Guide & Walkthrough
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
+            <span>Experience Cinematic Showcase</span>
+            <span className="text-[10px] uppercase font-mono px-1 py-0.2 bg-cyan-950 text-cyan-300 rounded border border-cyan-800">
+              New
+            </span>
           </Link>
+          <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 text-indigo-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs">
+            <Compass className="w-3.5 h-3.5 text-indigo-600" aria-hidden="true" />
+            <span>Hackathon Evaluator?</span>
+            <Link
+              href="/demo-guide"
+              className="underline underline-offset-2 hover:text-indigo-900 font-bold"
+            >
+              Demo Guide
+            </Link>
+          </div>
         </div>
       </div>
 

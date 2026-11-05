@@ -48,6 +48,7 @@ echo "=========================================================="
 
 ROUTES=(
   "/login"
+  "/showcase"
   "/demo-guide"
   "/about-ai"
   "/rules"
