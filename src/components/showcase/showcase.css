@@ -17,10 +17,15 @@ html.lenis body {
 }
 
 /* Base Body and Pinned Stage Overflows (R8) */
+html {
+  background-color: #05070c;
+}
+
 body.showcase-body {
   overflow-x: clip !important;
   background-color: #05070c !important;
   color: #c9ccd3 !important;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
 .h-screen-s {

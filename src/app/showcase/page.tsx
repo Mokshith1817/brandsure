@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import '@/app/globals.css';
 import '@/components/showcase/showcase.css';
 import { startScroll } from '@/components/showcase/scroll';
 import { Chrome } from '@/components/showcase/Chrome';
