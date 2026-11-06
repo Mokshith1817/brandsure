@@ -1,0 +1,208 @@
+{
+  "h1": {
+    "scrollHeight": 9668,
+    "clientHeight": 800,
+    "innerHeight": 800,
+    "isScrollHeightGreater": true,
+    "ancestors": [
+      {
+        "name": "html",
+        "tag": "HTML",
+        "class": "__variable_d8ebd1",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "static",
+        "height": "9668.28px"
+      },
+      {
+        "name": "body",
+        "tag": "BODY",
+        "class": "min-h-screen bg-slate-50 font-sans text-slate-900 antialiased selection:bg-indigo-100 selection:text-indigo-900",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "static",
+        "height": "9668.28px"
+      },
+      {
+        "name": "main",
+        "tag": "MAIN",
+        "class": "relative min-h-screen bg-void text-regolith selection:bg-earth selection:text-void overflow-x-hidden font-sans",
+        "overflow": "hidden auto",
+        "overflowX": "hidden",
+        "overflowY": "auto",
+        "position": "relative",
+        "height": "9668.28px"
+      },
+      {
+        "name": "section-0",
+        "tag": "SECTION",
+        "class": "relative h-[260vh] bg-void",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "relative",
+        "height": "2080px"
+      },
+      {
+        "name": "section-1",
+        "tag": "SECTION",
+        "class": "relative h-[380vh] bg-void",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "relative",
+        "height": "3040px"
+      },
+      {
+        "name": "section-2",
+        "tag": "SECTION",
+        "class": "relative h-[320vh] bg-void",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "relative",
+        "height": "2560px"
+      },
+      {
+        "name": "section-3",
+        "tag": "SECTION",
+        "class": "relative py-28 px-6 md:px-14 bg-void vault-grid border-t border-borderMuted/60",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "relative",
+        "height": "1062.59px"
+      },
+      {
+        "name": "section-4",
+        "tag": "SECTION",
+        "class": "relative py-28 px-6 md:px-14 bg-void vault-grid border-t border-borderMuted/60",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "relative",
+        "height": "735.688px"
+      },
+      {
+        "name": "section-5",
+        "tag": "SECTION",
+        "class": "",
+        "overflow": "visible",
+        "overflowX": "visible",
+        "overflowY": "visible",
+        "position": "static",
+        "height": "0px"
+      }
+    ],
+    "scrollBefore": 0,
+    "scrollAfter": 400,
+    "wheelMovedWindow": true
+  },
+  "h2": {
+    "hasLenisClass": false,
+    "rafTicksOver2s": 121
+  },
+  "h3": {
+    "luminanceAnalysis": {
+      "h1Text": "BRANDSURE",
+      "h1Visible": true,
+      "h1Opacity": "1",
+      "veilBg": "rgba(5, 7, 12, 0.9)",
+      "veilOpacity": "1"
+    },
+    "screenshot": "/Users/mokshith/Projects/demo/docs/showcase-qa/frame0_phase1.png"
+  },
+  "h4": {
+    "consoleErrorsAndWarnings": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      }
+    ],
+    "pageErrors": []
+  },
+  "h5": [
+    {
+      "tag": "DIV",
+      "class": "absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-void/90 backdrop-blur-md transition-all duration-75",
+      "transition": "0.075s cubic-bezier(0.4, 0, 0.2, 1)",
+      "inlineStyle": {
+        "transform": "scale(1)",
+        "opacity": "1",
+        "strokeDashoffset": ""
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "relative flex flex-col items-center justify-center will-change-transform opacity-0",
+      "transition": "all",
+      "inlineStyle": {
+        "transform": "translate3d(0px, 120px, 0px) scale(0.85)",
+        "opacity": "0",
+        "strokeDashoffset": ""
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "relative z-20 mt-16 md:mt-24 text-center max-w-4xl mx-auto space-y-4 opacity-0 will-change-transform",
+      "transition": "all",
+      "inlineStyle": {
+        "transform": "translate3d(0px, 50px, 0px)",
+        "opacity": "0",
+        "strokeDashoffset": ""
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "relative z-20 grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 font-mono text-xs border-t border-borderMuted/60 bg-void/40 backdrop-blur-sm opacity-0 transition-opacity duration-300",
+      "transition": "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      "inlineStyle": {
+        "transform": "",
+        "opacity": "0",
+        "strokeDashoffset": ""
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 font-mono text-[10px] text-regolith/60 tracking-widest uppercase transition-opacity",
+      "transition": "opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
+      "inlineStyle": {
+        "transform": "",
+        "opacity": "1",
+        "strokeDashoffset": ""
+      }
+    },
+    {
+      "tag": "path",
+      "class": {},
+      "transition": "stroke-dashoffset 0.05s linear",
+      "inlineStyle": {
+        "transform": "",
+        "opacity": "",
+        "strokeDashoffset": "1594.8"
+      }
+    },
+    {
+      "tag": "DIV",
+      "class": "flex items-center gap-8 pl-4 will-change-transform transition-transform duration-75",
+      "transition": "transform 0.075s cubic-bezier(0.4, 0, 0.2, 1)",
+      "inlineStyle": {
+        "transform": "translate3d(0px, 0px, 0px)",
+        "opacity": "",
+        "strokeDashoffset": ""
+      }
+    }
+  ],
+  "h6": {
+    "frames": 80,
+    "p50": 16.699999999999818,
+    "p95": 83.29999999999927,
+    "worst": 116.69999999999982,
+    "longTasks": 0
+  },
+  "h7": {
+    "setStateCallsInScroll": "Identified setActiveLegIndex and setActiveDraft triggered during scroll"
+  }
+}

@@ -1,80 +1,73 @@
-export type ScrollCallback = (scrollY: number, velocity: number) => void;
+import Lenis from 'lenis';
 
-class ScrollController {
-  private callbacks: Set<ScrollCallback> = new Set();
-  private rafId: number = 0;
-  private currentY: number = 0;
-  private targetY: number = 0;
-  private lastTime: number = 0;
-  private isInitialized = false;
+export type Tick = (time: number) => void;
 
-  init() {
-    if (this.isInitialized || typeof window === 'undefined') return;
-    this.isInitialized = true;
+const subs = new Set<Tick>();
+let lenis: Lenis | null = null;
+let running = false;
+let rafId = 0;
 
-    this.currentY = window.scrollY;
-    this.targetY = window.scrollY;
-    this.lastTime = performance.now();
+export function startScroll(reduced = false): () => void {
+  if (typeof window === 'undefined') return () => {};
 
-    const onScroll = () => {
-      this.targetY = window.scrollY;
-    };
+  if (!reduced) {
+    lenis = new Lenis({
+      lerp: 0.09,
+      smoothWheel: true,
+      syncTouch: false,
+    });
+  }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+  running = true;
 
-    const tick = (time: number) => {
-      const dt = Math.min(0.1, (time - this.lastTime) / 1000);
-      this.lastTime = time;
-
-      // Smooth damp interpolation towards target scroll
-      const diff = this.targetY - this.currentY;
-      const velocity = dt > 0 ? diff / dt : 0;
-      
-      // Update current position (smooth lerp if needed, or sync directly)
-      this.currentY += diff * 0.25;
-      if (Math.abs(diff) < 0.1) {
-        this.currentY = this.targetY;
+  const loop = (t: number) => {
+    if (!running) return;
+    lenis?.raf(t);
+    subs.forEach((fn) => {
+      try {
+        fn(t);
+      } catch (e) {
+        console.error('Error in onFrame subscriber:', e);
       }
+    });
+    rafId = requestAnimationFrame(loop);
+  };
 
-      const activeY = window.scrollY;
-      this.callbacks.forEach((cb) => cb(activeY, velocity));
+  rafId = requestAnimationFrame(loop);
+  document.documentElement.classList.add('js-ready');
 
-      this.rafId = requestAnimationFrame(tick);
-    };
+  return () => {
+    // Stops the loop only; never clears subs (survives React Strict Mode double-mounting)
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    lenis?.destroy();
+    lenis = null;
+    document.documentElement.classList.remove('js-ready');
+  };
+}
 
-    this.rafId = requestAnimationFrame(tick);
+export function onFrame(fn: Tick): () => void {
+  subs.add(fn);
+  // Execute immediately once on subscribe
+  if (typeof window !== 'undefined') {
+    fn(performance.now());
   }
+  return () => {
+    subs.delete(fn);
+  };
+}
 
-  subscribe(cb: ScrollCallback): () => void {
-    this.callbacks.add(cb);
-    if (typeof window !== 'undefined') {
-      cb(window.scrollY, 0);
-    }
-    return () => {
-      this.callbacks.delete(cb);
-    };
-  }
-
-  scrollTo(target: string | number | HTMLElement) {
-    if (typeof window === 'undefined') return;
-
+export function scrollTo(target: string | number | HTMLElement) {
+  if (lenis) {
+    lenis.scrollTo(target, { duration: 1.2 });
+  } else if (typeof window !== 'undefined') {
     if (typeof target === 'number') {
       window.scrollTo({ top: target, behavior: 'smooth' });
     } else if (typeof target === 'string') {
       const el = document.querySelector(target);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
+      el?.scrollIntoView({ behavior: 'smooth' });
     } else if (target instanceof HTMLElement) {
       target.scrollIntoView({ behavior: 'smooth' });
     }
   }
-
-  destroy() {
-    if (this.rafId) cancelAnimationFrame(this.rafId);
-    this.callbacks.clear();
-    this.isInitialized = false;
-  }
 }
-
-export const scrollManager = new ScrollController();

@@ -31,36 +31,40 @@ export interface CampaignDraft {
   findings: CampaignFinding[];
 }
 
-export interface GovernanceTier {
+export interface RoadmapItem {
   id: string;
-  name: string;
-  headline: string;
-  rings: number;
-  ringRadii: number[];
-  sla: string;
-  accuracy: string;
-  auditRetention: string;
-  features: string[];
-  recommended?: boolean;
+  title: string;
+  stage: 'Active in Round 2' | 'Planned Next' | 'Future Roadmap';
+  description: string;
+  capabilities: string[];
 }
 
 export const SHOWCASE_CONTENT = {
   brand: {
     name: 'BrandSure',
-    client: 'PayNest',
-    tagline: 'Zero-Hallucination Brand Governance for Fintech Marketing',
-    hackathon: 'CodeNexus India 2026 — Round 2 Production Build',
-    sha256Audit: '8f7a912b4e3c9902f1a6e788bc23d51104e6c382',
-    f1Score: '100.0%',
-    auditBlockHeight: '8,941'
+    client: 'PayNest (Fictional Fintech Brand)',
+    tagline: 'Pre-Publication Brand Governance for Fintech Marketing',
+    hackathon: 'CodeNexus India 2026 — Round 2 Working Build',
+    principle: 'Humans decide. AI only flags and suggests. Never invent a rule or fact.',
+    benchmarkTruth: '12-draft sanity check on drafts written with the rulebook; larger benchmark planned',
   },
 
   hero: {
-    eyebrow: 'PRE-PUBLICATION VERIFICATION FOR REGULATED MARKETING',
+    eyebrow: 'PRE-PUBLICATION BRAND GOVERNANCE FOR FINTECH',
     title: 'BRANDSURE',
-    subtitle: 'Where fintech creativity meets bounded mathematical truth.',
-    lead: 'Every claim, fee, and disclaimer verified against approved fact tables, glossaries, and hybrid vector stores before a single user sees it.',
-    scrollPrompt: 'SCROLL TO ENGAGE BOUNDED ENGINE'
+    subtitle: 'Where marketing creativity meets bounded compliance truth.',
+    lead: 'Checks marketing text drafts strictly against approved guidelines, verified facts, and preferred terminology before publication.',
+    scrollPrompt: 'SCROLL TO EXPLORE THE GOVERNANCE PIPELINE',
+    riskClaims: [
+      { id: '1', text: '100% Guaranteed Returns!', tag: 'Prohibited Superlative' },
+      { id: '2', text: 'Zero Risk Wealth Growth', tag: 'Misleading Claim' },
+      { id: '3', text: 'Instant Approval in 5s', tag: 'Unsubstantiated Fact' },
+      { id: '4', text: 'Best Payment App in India', tag: 'Unsubstantiated Claim' },
+      { id: '5', text: 'Crush All Bank Deposits', tag: 'Disparaging Comparison' },
+      { id: '6', text: 'Unlimited Free Transfers', tag: 'Omitted Conditions' },
+      { id: '7', text: 'Risk-Free Gold Savings', tag: 'Missing Risk Notice' },
+      { id: '8', text: 'Guaranteed 15% APY', tag: 'Prohibited Yield Claim' },
+    ],
   },
 
   pipeline: [
@@ -68,98 +72,98 @@ export const SHOWCASE_CONTENT = {
       id: 'glossary',
       number: '01',
       title: 'Deterministic Terminology Engine',
-      tagline: 'Zero-Tolerance Lexicon Scrubbing',
-      metric: '< 2ms',
-      metricLabel: 'Exact Match Latency',
-      mechanism: 'Aho-Corasick Multi-Pattern Trie',
-      description: 'Intercepts strictly banned fintech superlatives ("guaranteed wealth", "risk-free", "instant profit") and enforces preferred brand nomenclature across multi-channel copy.',
-      sourcesCited: ['Glossary:Banned-Claims', 'PayNest Brand Voice Standard v3.1']
+      tagline: 'Exact Banned vs. Preferred Lexicon Matching',
+      metric: 'Exact',
+      metricLabel: 'Lookup Method',
+      mechanism: 'Glossary Rule Enforcement',
+      description: 'Scans text against approved brand terms. Flags strictly prohibited words (such as "guaranteed wealth" or "risk-free") and suggests preferred replacements.',
+      sourcesCited: ['Glossary: preferred & prohibited brand terms', 'PayNest Brand Voice Standard']
     },
     {
       id: 'facts',
       number: '02',
       title: 'Structured Fact Base Validation',
-      tagline: 'Substantiating Every Digit and APR',
-      metric: '100%',
-      metricLabel: 'Numeric Accuracy',
-      mechanism: 'PostgreSQL Relational Fact Map',
-      description: 'Validates all numeric claims, zero-fee declarations, and annual percentage rates directly against approved tabular fact sheets. If a number is absent, it is flagged as unverified.',
-      sourcesCited: ['Facts:Tariff-2026', 'Facts:UPI-Limits', 'Facts:SEBI-Registration']
+      tagline: 'Substantiating Numeric Claims & Disclosures',
+      metric: 'Key-Value',
+      metricLabel: 'Relational Lookup',
+      mechanism: 'PostgreSQL Fact Sheet Verification',
+      description: 'Validates numbers, fees, and stated turnaround times directly against approved tabular fact sheets. If a number lacks supporting proof, it is flagged as unverified.',
+      sourcesCited: ['Facts: Tariff-2026', 'Facts: KYC-SLA-2026', 'Facts: Product-Limits']
     },
     {
       id: 'rag',
       number: '03',
-      title: 'Hybrid pgvector + FTS Retrieval',
-      tagline: 'Semantic Vector Context Fused with Exact Lexical Search',
-      metric: '0.84',
-      metricLabel: 'Cosine Relevance Cutoff',
-      mechanism: 'Reciprocal Rank Fusion (RRF)',
-      description: 'Queries pgvector with HNSW embeddings and cross-references full-text ts_rank searches across 48 regulatory guidelines to eliminate semantic false negatives.',
-      sourcesCited: ['Guideline:GL-FIN-01', 'Guideline:GL-DISC-09', 'RBI Master Direction 2025']
+      title: 'Hybrid RAG Guideline Retrieval',
+      tagline: 'Vector Similarity + Keyword Text Search',
+      metric: 'Hybrid',
+      metricLabel: 'Search Method',
+      mechanism: 'pgvector Cosine + Postgres FTS Ranking',
+      description: 'Finds relevant approved brand guidelines using dense semantic embeddings alongside keyword matching, surfacing exact excerpts for human verification.',
+      sourcesCited: ['Guideline: GL-FIN-01 (Promotional Standards)', 'Guideline: GL-DISC-02 (Risk Notices)']
     },
     {
       id: 'bounded-judge',
       number: '04',
-      title: 'Bounded Gemini 2.5 Claim Judge',
-      tagline: 'Strict Closed-World Inference & Intent-Preserving Fixes',
-      metric: '0.0%',
-      metricLabel: 'Hallucination Rate',
-      mechanism: 'Negative Constraint LLM Bounding',
-      description: 'The reasoning agent only flags and suggests based strictly on supplied evidence. It cannot approve, delete, or hallucinate citations. Humans retain final approval.',
-      sourcesCited: ['Gemini 2.5 Flash Bounded Guardrails', 'Audited LLM Decision Matrix']
+      title: 'Bounded Review & Suggestion Agent',
+      tagline: 'Grounded Suggestions Without Human Disintermediation',
+      metric: 'Bounded',
+      metricLabel: 'Constraint Mode',
+      mechanism: 'Evidence-Constrained Prompting',
+      description: 'Flags specific text spans and suggests edits that preserve original marketing intent while adhering strictly to cited rules. The agent cannot approve, reject, or publish drafts.',
+      sourcesCited: ['Cited Rulebook Sources Only', 'Human-in-the-Loop Decision Step']
     }
   ] as PipelineLeg[],
 
   campaignReel: [
     {
       id: 'camp-01',
-      title: 'UPI Instant Cash Booster Launch',
-      channel: 'Push Notification & Instagram Reel',
-      targetAudience: 'Tier-1 Metro Gen-Z Professionals',
-      originalText: 'Get guaranteed 12% instant cashback on every single UPI scan! Open an account with zero balance in under 30 seconds.',
-      reviewedText: 'Earn up to 12% rewards on eligible UPI merchant payments. Open a digital wallet in minutes. T&C apply.',
+      title: 'UPI Rewards Notification',
+      channel: 'Push Notification · Social Ad',
+      targetAudience: 'Active transacting users',
+      originalText: 'Get guaranteed 12% instant cashback on every single UPI scan! Open an account in under 30 seconds.',
+      reviewedText: 'Earn up to 12% rewards on eligible UPI merchant payments. Open an account in 2 minutes. T&C apply.',
       score: 68,
       status: 'Flagged',
       findings: [
         {
           span: 'guaranteed 12% instant cashback',
-          issue: 'Prohibited superlative; cashback is tier-variable and subject to merchant caps.',
+          issue: 'Prohibited superlative; cashback is tier-variable and subject to merchant conditions.',
           severity: 'high',
-          ruleRef: 'GL-FIN-01 (SEBI/NPCI Promotional Standards)',
+          ruleRef: 'GL-FIN-01 (PayNest Promotional Standards)',
           fix: 'Earn up to 12% rewards on eligible UPI merchant payments',
           sourceType: 'guideline'
         },
         {
-          span: 'zero balance in under 30 seconds',
-          issue: 'Account opening fact mismatch: KYC SLA minimum is 2 minutes.',
+          span: 'in under 30 seconds',
+          issue: 'Turnaround fact mismatch: approved KYC turnaround minimum is 2 minutes.',
           severity: 'medium',
-          ruleRef: 'Fact:KYC-SLA-2026',
-          fix: 'Open a digital wallet in minutes',
+          ruleRef: 'Fact: KYC-SLA-2026',
+          fix: 'Open an account in 2 minutes',
           sourceType: 'fact'
         }
       ]
     },
     {
       id: 'camp-02',
-      title: 'WealthNest Multi-Asset Basket Ad',
-      channel: 'Google Search & LinkedIn Banner',
-      targetAudience: 'Retail Investors (Ages 25–40)',
-      originalText: 'Invest with PayNest for guaranteed returns that crush traditional fixed deposits with zero risk to principal.',
+      title: 'WealthNest Multi-Asset Ad',
+      channel: 'Search Ad · Social Banner',
+      targetAudience: 'Retail investors',
+      originalText: 'Invest with PayNest for guaranteed returns that crush traditional fixed deposits with zero risk.',
       reviewedText: 'Invest in curated portfolios designed to outperform traditional savings products. Investments are subject to market risks.',
       score: 42,
       status: 'Flagged',
       findings: [
         {
           span: 'guaranteed returns that crush traditional fixed deposits',
-          issue: 'Strictly prohibited return guarantee on market-linked securities.',
+          issue: 'Prohibited return guarantee on market-linked securities.',
           severity: 'high',
-          ruleRef: 'GL-INV-04 (SEBI Mutual Fund Advertising Code)',
+          ruleRef: 'GL-INV-04 (PayNest Investment Promotion Code)',
           fix: 'Invest in curated portfolios designed to outperform traditional savings products',
           sourceType: 'guideline'
         },
         {
-          span: 'zero risk to principal',
-          issue: 'Misrepresentation of capital safety; market risks must be disclosed.',
+          span: 'zero risk',
+          issue: 'Misrepresentation of capital safety; market risks must be explicitly disclosed.',
           severity: 'high',
           ruleRef: 'GL-DISC-02 (Mandatory Risk Disclaimer)',
           fix: 'Investments are subject to market risks. Read all scheme documents carefully.',
@@ -169,19 +173,19 @@ export const SHOWCASE_CONTENT = {
     },
     {
       id: 'camp-03',
-      title: 'Weekend SpendFest Flash Promo',
-      channel: 'In-App Banner & WhatsApp Blast',
-      targetAudience: 'Existing Active Transactors',
-      originalText: 'Pay via PayNest UPI and enjoy unlimited free international wire transfers all through Saturday.',
-      reviewedText: 'Pay via PayNest UPI and enjoy 0% markup on select cross-border merchant transactions this Saturday. Limits apply.',
+      title: 'Cross-Border Travel Promo',
+      channel: 'In-App Story · Email Blast',
+      targetAudience: 'International travelers',
+      originalText: 'Pay via PayNest UPI and enjoy unlimited free cross-border transactions all weekend.',
+      reviewedText: 'Pay via PayNest UPI and enjoy 0% markup on select cross-border merchant transactions this weekend. Limits apply.',
       score: 74,
       status: 'Flagged',
       findings: [
         {
-          span: 'unlimited free international wire transfers',
-          issue: 'Fact violation: Cross-border remittances capped at ₹2,50,000 under LRS.',
+          span: 'unlimited free cross-border transactions',
+          issue: 'Fact violation: Cross-border transactions are subject to daily limits and merchant eligibility.',
           severity: 'high',
-          ruleRef: 'Fact:Cross-Border-LRS-Cap',
+          ruleRef: 'Fact: Tariff-2026 (Cross-Border Limits)',
           fix: '0% markup on select cross-border merchant transactions',
           sourceType: 'fact'
         }
@@ -189,79 +193,63 @@ export const SHOWCASE_CONTENT = {
     },
     {
       id: 'camp-04',
-      title: 'Annual Audited Compliance Statement',
-      channel: 'Press Release & Investor Relations',
-      targetAudience: 'Accredited Investors & Regulatory Auditors',
-      originalText: 'PayNest Financial Technologies operates under full RBI regulatory sandbox approval with 100% adherence to digital lending guidelines.',
-      reviewedText: 'PayNest Financial Technologies operates under full RBI regulatory sandbox approval with 100% adherence to digital lending guidelines.',
+      title: 'Annual Compliance Summary',
+      channel: 'Investor Update · Press Release',
+      targetAudience: 'Stakeholders & partners',
+      originalText: 'PayNest Financial Technologies operates under verified partner banking infrastructure with strict adherence to approved regulatory guidelines.',
+      reviewedText: 'PayNest Financial Technologies operates under verified partner banking infrastructure with strict adherence to approved regulatory guidelines.',
       score: 100,
       status: 'Approved',
       findings: []
     }
   ] as CampaignDraft[],
 
-  tiers: [
+  roadmap: [
     {
-      id: 'standard',
-      name: 'Campaign Pulse',
-      headline: 'For high-velocity growth marketing teams publishing daily social & ads.',
-      rings: 2,
-      ringRadii: [32, 54],
-      sla: '450ms',
-      accuracy: '99.4% F1',
-      auditRetention: '90 Days',
-      features: [
-        'Automated Aho-Corasick glossary scan',
-        'Tabular fact sheet cross-check',
-        'Single-turn Gemini 2.5 Flash review',
-        'Exportable compliance audit PDF'
+      id: 'current',
+      title: 'Core Governance Engine',
+      stage: 'Active in Round 2',
+      description: 'The foundation built and verified in Round 2 of CodeNexus India 2026.',
+      capabilities: [
+        'Deterministic glossary & prohibited claims scanner',
+        'Relational fact sheet validation for numeric claims',
+        'Hybrid RAG (pgvector cosine + full-text search)',
+        'Bounded review agent with exact rule citations',
+        'Full four-role workflow (creator, reviewer, manager, admin)',
+        'Append-only audit log recording every important action'
       ]
     },
     {
-      id: 'regulated',
-      name: 'Regulated Wealth & Credit',
-      headline: 'Full-spectrum governance for SEBI/RBI registered lending & investment products.',
-      rings: 3,
-      ringRadii: [28, 48, 68],
-      sla: '180ms',
-      accuracy: '100.0% F1',
-      auditRetention: '7 Years (Regulatory Grade)',
-      features: [
-        'Hybrid pgvector + FTS Reciprocal Rank Fusion',
-        'Mandatory statutory disclaimer injector',
-        'Four-eyes maker-checker approval flow',
-        'Direct SEBI/RBI guideline citation map',
-        'Real-time Slack / Teams triage alerts'
-      ],
-      recommended: true
+      id: 'multimodal',
+      title: 'Creative & Image Verification',
+      stage: 'Planned Next',
+      description: 'Extending brand governance from text copy to visual marketing creatives.',
+      capabilities: [
+        'OCR extraction for social media graphics and banners',
+        'Brand color palette & logo placement compliance check',
+        'Mandatory statutory disclaimer legibility verification',
+        'Automated Figma plugin integration'
+      ]
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise Sovereign Vault',
-      headline: 'Dedicated air-gapped governance infrastructure for financial institutions.',
-      rings: 4,
-      ringRadii: [24, 42, 60, 78],
-      sla: '< 100ms',
-      accuracy: '100.0% F1',
-      auditRetention: 'Immutable Append-Only WORM',
-      features: [
-        'Custom fine-tuned bounded models',
-        'Private VPC Supabase & pgvector deployment',
-        'Cryptographic hash on every reviewed draft',
-        'Automated legal escalation workflows',
-        '24/7 dedicated regulatory compliance architect'
+      id: 'analytics',
+      title: 'Governance Intelligence',
+      stage: 'Future Roadmap',
+      description: 'Organizational visibility into compliance bottlenecks and recurring risk patterns.',
+      capabilities: [
+        'Team-level violation trend analytics and risk scorecards',
+        'Automated guideline update impact simulator',
+        'Multi-brand governance workspace support',
+        'Automated regulatory circular delta ingestion'
       ]
     }
-  ] as GovernanceTier[],
+  ] as RoadmapItem[],
 
   telemetry: {
     ruleCount: 48,
     benchmarkDrafts: 12,
     testedFindings: 14,
     truePositives: 14,
-    falsePositives: 0,
-    precision: '100.0%',
-    recall: '100.0%',
-    f1: '100.0%'
+    benchmarkNote: '12-draft sanity check on drafts written with the rulebook; larger benchmark planned'
   }
 };

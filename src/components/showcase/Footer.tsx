@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { SHOWCASE_CONTENT } from './content';
-import { ShieldCheck, Lock, ArrowUp } from 'lucide-react';
-import { scrollManager } from './scroll';
+import { ShieldCheck, ArrowUp, Compass } from 'lucide-react';
+import { scrollTo } from './scroll';
 
 export const Footer: React.FC = () => {
   return (
@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
         <div className="flex items-center gap-3">
           <ShieldCheck className="w-5 h-5 text-earth" />
           <div>
-            <span className="text-white font-display font-semibold text-sm">
+            <span className="text-white font-display text-sm font-normal">
               {SHOWCASE_CONTENT.brand.name}
             </span>
             <span className="text-regolith/50 text-[11px] block">
@@ -37,17 +37,18 @@ export const Footer: React.FC = () => {
           </Link>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-right">
-          <div className="flex items-center gap-1.5 text-[11px]">
-            <Lock className="w-3.5 h-3.5 text-complianceGreen" />
-            <span>Audit Anchor:</span>
-            <span className="text-earth font-mono">
-              {SHOWCASE_CONTENT.brand.sha256Audit.slice(0, 16)}...
-            </span>
-          </div>
+        <div className="flex items-center gap-4 text-center md:text-right">
+          <Link
+            href="/demo-guide"
+            className="inline-flex items-center gap-1.5 text-[11px] text-earth hover:underline"
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>{SHOWCASE_CONTENT.brand.benchmarkTruth}</span>
+          </Link>
           <button
-            onClick={() => scrollManager.scrollTo(0)}
-            className="p-2 rounded bg-borderMuted hover:bg-borderActive text-regolith/80 hover:text-white transition-colors"
+            type="button"
+            onClick={() => scrollTo(0)}
+            className="p-2 rounded bg-borderMuted hover:bg-borderActive text-regolith hover:text-white transition-colors"
             title="Scroll to Top"
             aria-label="Scroll to top"
           >
@@ -55,8 +56,9 @@ export const Footer: React.FC = () => {
           </button>
         </div>
       </div>
+
       <div className="max-w-6xl mx-auto mt-6 pt-4 border-t border-borderMuted/40 text-center text-[10px] text-regolith/40">
-        Humans decide. AI only flags & suggests. Never invent a rule or fact.
+        {SHOWCASE_CONTENT.brand.principle}
       </div>
     </footer>
   );
