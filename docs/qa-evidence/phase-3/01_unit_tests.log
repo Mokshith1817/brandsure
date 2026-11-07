@@ -1,0 +1,27 @@
+npm notice run brandsure@1.0.0 test
+npm notice run vitest run
+
+ RUN  v3.2.7 /Users/mokshith/Projects/demo
+
+ ✓ tests/i18n.test.ts (4 tests) 5ms
+ ✓ tests/rag.test.ts (3 tests) 6ms
+ ✓ tests/verdict.test.ts (16 tests) 3ms
+ ✓ tests/audit-tamper.test.ts (3 tests) 3ms
+ ✓ tests/datastore.test.ts (4 tests) 7ms
+ ✓ tests/forecast.test.ts (1 test) 61ms
+stderr | tests/tamper.test.ts > Phase 2: Authentication and Role Security Tamper Tests > Tamper 1: rejects tampered session cookie modifying role to manager
+[Session Security Alert]: Cookie signature mismatch! Possible role tampering attempt detected.
+
+stderr | tests/tamper.test.ts > Phase 2: Authentication and Role Security Tamper Tests > Tamper 1: rejects tampered session cookie modifying role to manager
+[Session Security Alert]: Cookie signature mismatch! Possible role tampering attempt detected.
+
+ ✓ tests/tamper.test.ts (5 tests) 20ms
+ ✓ tests/determinism.test.ts (2 tests) 84ms
+ ✓ tests/api.test.ts (6 tests) 112ms
+ ✓ tests/chart-utils.test.ts (4 tests) 2ms
+
+ Test Files  10 passed (10)
+      Tests  48 passed (48)
+   Start at  23:44:21
+   Duration  527ms (transform 261ms, setup 0ms, collect 696ms, tests 303ms, environment 1ms, prepare 701ms)
+

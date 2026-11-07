@@ -121,7 +121,7 @@ export default async function ApprovalsQueuePage() {
         {/* Next Step Guidance Banner */}
         <NextStepBanner
           statusTitle="Authorize Marketing Copy for Dissemination"
-          explanation="Select a pending draft to examine citations, verify creator changes, and record an immutable approval, revision request, or rejection with justification."
+          explanation="Select a pending draft to examine citations, verify creator changes, and record an audit-logged approval, revision request, or rejection with justification."
           actionText="Review First Approval Item"
           actionHref={pendingDrafts[0] ? `/drafts/${pendingDrafts[0].id}` : '/drafts'}
           variant={pendingDrafts.length > 0 ? 'warning' : 'success'}

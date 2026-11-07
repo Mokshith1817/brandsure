@@ -1233,7 +1233,7 @@ export function DraftReviewClient({
                 className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-sans"
               />
               <p className="text-[11px] text-slate-500">
-                Saving will create an immutable revision snapshot and automatically run compliance checks against the approved rulebook.
+                Saving will create a new draft version snapshot and automatically run compliance checks against the approved rulebook.
               </p>
             </div>
 

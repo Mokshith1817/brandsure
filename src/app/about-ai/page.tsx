@@ -103,6 +103,12 @@ export default function AboutAIPage() {
                 <p>
                   In production, BrandSure operates exclusively with Supabase PostgreSQL, enforcing Row-Level Security and database triggers. In-memory demo storage is restricted to local development environments when <code className="bg-slate-200 px-1 py-0.5 rounded text-indigo-700">DEMO_MODE=true</code> is set.
                 </p>
+                <div className="pt-2 border-t border-slate-200 mt-2">
+                  <span className="font-semibold text-slate-800 block mb-1">Audit Log Architecture:</span>
+                  <p>
+                    In production, the audit log (<code className="bg-slate-200 px-1 py-0.5 rounded text-indigo-700">public.audit_log</code>) is append-only, enforced by the Postgres row-level trigger <code className="bg-slate-200 px-1 py-0.5 rounded text-indigo-700">trg_audit_log_append_only</code> which intercepts and aborts all <code className="text-red-700 font-mono">UPDATE</code> and <code className="text-red-700 font-mono">DELETE</code> statements with SQL state <code className="font-mono text-slate-800">P0001</code>. In demo mode, in-memory logs are stored in memory and are not backed by Postgres triggers.
+                  </p>
+                </div>
               </div>
             </section>
           </div>

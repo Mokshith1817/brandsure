@@ -110,7 +110,7 @@ export default function DemoGuidePage() {
             </li>
             <li className="flex items-start gap-2.5">
               <span className="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-bold text-xs mt-0.5">8</span>
-              <div><strong>Append-only audit trail:</strong> Every agent tool call, finding decision, and manager approval is permanently recorded in the tamper-resistant audit log.</div>
+              <div><strong>Append-only audit log:</strong> Enforced by Postgres row-level trigger (<code className="bg-slate-100 px-1 py-0.5 rounded text-xs font-mono text-indigo-700">trg_audit_log_append_only</code>) in production; in-memory log in demo mode. Every agent evaluation, finding disposition, and managerial decision is recorded with actor metadata and timestamp.</div>
             </li>
           </ol>
         </section>
