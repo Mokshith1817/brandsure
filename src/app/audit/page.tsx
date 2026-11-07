@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { AuditLogClient } from './AuditLogClient';
 import { getCurrentSession } from '@/lib/auth';
-import { getDemoAuditLogs } from '@/lib/demo-data';
+import { getDemoAuditLogs, isSupabaseConfigured } from '@/lib/demo-data';
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 import type { Role, AuditLogEntry } from '@/types/database';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +19,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function AuditLogPage() {
   const { user, profile, isDemoMode } = await getCurrentSession();
+
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Governance Audit Log" />;
+  }
 
   if (!user || !profile) {
     redirect('/login');
@@ -36,6 +41,7 @@ export default async function AuditLogPage() {
         fullName={profile.full_name}
         role={role}
         orgName={orgName}
+        isDemoMode={isDemoMode}
       >
         <div className="bg-white border border-amber-200 rounded-xl p-8 max-w-lg mx-auto text-center shadow-sm">
           <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
@@ -60,7 +66,9 @@ export default async function AuditLogPage() {
 
   let logs: (AuditLogEntry & { actor_name?: string })[] = [];
 
-  if (!isDemoMode) {
+  if (isDemoMode) {
+    logs = getDemoAuditLogs();
+  } else {
     try {
       const supabase = await createClient();
       const { data: rawLogs } = await supabase
@@ -87,13 +95,9 @@ export default async function AuditLogPage() {
           actor_name: row.profiles?.full_name || (row.actor_type === 'ai_agent' ? 'BrandSure AI' : undefined),
         }));
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.error('[Supabase Audit Query Error]:', err.message);
     }
-  }
-
-  if (logs.length === 0) {
-    logs = getDemoAuditLogs();
   }
 
   return (
@@ -102,6 +106,7 @@ export default async function AuditLogPage() {
       fullName={profile.full_name}
       role={role}
       orgName={orgName}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-6">
         <div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, ArrowLeft, Bot, Lock, Eye, AlertTriangle, FileCheck } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Bot, Lock, Eye, AlertTriangle, FileCheck, Database } from 'lucide-react';
+import { isSupabaseConfigured } from '@/lib/data-store';
 
 export default function AboutAIPage() {
   return (
@@ -85,6 +86,24 @@ export default function AboutAIPage() {
               <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded border border-slate-200">
                 All demonstration companies, figures, and scenarios (including the demo brand <strong>PayNest</strong>, its user counts, speed benchmarks, and partner banks) are entirely fictional and designed for evaluation purposes in the CodeNexus India 2026 hackathon.
               </p>
+            </section>
+
+            <section className="space-y-2">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Database className="w-4 h-4 text-indigo-600" />
+                6. Data Store Architecture & Integrity
+              </h2>
+              <div className="text-xs text-slate-600 bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-800">Active Architecture:</span>
+                  <span className="font-mono font-semibold px-2.5 py-0.5 rounded text-[11px] bg-slate-200 text-slate-800">
+                    {isSupabaseConfigured() ? 'Data store: Supabase' : 'Data store: Demo mode'}
+                  </span>
+                </div>
+                <p>
+                  In production, BrandSure operates exclusively with Supabase PostgreSQL, enforcing Row-Level Security and database triggers. In-memory demo storage is restricted to local development environments when <code className="bg-slate-200 px-1 py-0.5 rounded text-indigo-700">DEMO_MODE=true</code> is set.
+                </p>
+              </div>
             </section>
           </div>
         </div>

@@ -16,6 +16,10 @@ import { revalidatePath } from 'next/cache';
 export async function addComment(draftId: string, body: string) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Please log in to comment.' };
   }
@@ -25,7 +29,7 @@ export async function addComment(draftId: string, body: string) {
     return { error: 'Comment body cannot be empty.' };
   }
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
       const { data, error } = await supabase
@@ -38,7 +42,7 @@ export async function addComment(draftId: string, body: string) {
         .select('id')
         .single();
 
-      if (error) return { error: error.message };
+      if (error) return { error: `Database error: ${error.message}` };
 
       await writeAudit(
         { id: user.id, type: 'user', org_id: profile.org_id },
@@ -52,11 +56,12 @@ export async function addComment(draftId: string, body: string) {
       revalidatePath('/approvals');
       return { success: true };
     } catch (err: any) {
-      console.warn('[Live comment insert error, falling back]:', err.message);
+      console.error('[Supabase Comment Insert Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to post comment.'}` };
     }
   }
 
-  // Demo store
+  // Demo store (Only reached when isDemoMode === true)
   addDemoComment({
     draftId,
     authorId: user.id,
@@ -88,6 +93,10 @@ export async function recordDecision(
 ) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Please log in to record a decision.' };
   }
@@ -101,7 +110,7 @@ export async function recordDecision(
     return { error: 'A mandatory written justification is required for every managerial decision.' };
   }
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
 
@@ -117,13 +126,15 @@ export async function recordDecision(
         .select('id')
         .single();
 
-      if (decErr) return { error: decErr.message };
+      if (decErr) return { error: `Database error: ${decErr.message}` };
 
       // Update Draft Status
-      await supabase
+      const { error: draftUpdateErr } = await supabase
         .from('drafts')
         .update({ status: decision })
         .eq('id', draftId);
+
+      if (draftUpdateErr) return { error: `Database error: ${draftUpdateErr.message}` };
 
       await writeAudit(
         { id: user.id, type: 'user', org_id: profile.org_id },
@@ -138,11 +149,12 @@ export async function recordDecision(
       revalidatePath('/reviews');
       return { success: true };
     } catch (err: any) {
-      console.warn('[Live decision error, falling back]:', err.message);
+      console.error('[Supabase Decision Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to record decision.'}` };
     }
   }
 
-  // Demo store
+  // Demo store (Only reached when isDemoMode === true)
   recordDemoDecision({
     draftId,
     decidedBy: user.id,
@@ -172,6 +184,10 @@ export async function recordDecision(
 export async function createNewVersion(draftId: string, newBody: string) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Unauthorized.' };
   }
@@ -184,17 +200,21 @@ export async function createNewVersion(draftId: string, newBody: string) {
   // Run Review Agent on the new version content
   const agentRes = await runReviewAgent(trimmed, 'social', profile.org_id);
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
 
-      const { data: draft } = await supabase
+      const { data: draft, error: fetchErr } = await supabase
         .from('drafts')
         .select('current_version')
         .eq('id', draftId)
         .single();
 
-      const nextVer = (draft?.current_version || 1) + 1;
+      if (fetchErr || !draft) {
+        return { error: fetchErr?.message || 'Draft not found.' };
+      }
+
+      const nextVer = (draft.current_version || 1) + 1;
 
       const { data: verData, error: verErr } = await supabase
         .from('draft_versions')
@@ -207,7 +227,7 @@ export async function createNewVersion(draftId: string, newBody: string) {
         .select('id')
         .single();
 
-      if (verErr) return { error: verErr.message };
+      if (verErr || !verData) return { error: `Database error: ${verErr?.message || 'Failed to insert version.'}` };
 
       // Update draft
       await supabase
@@ -244,11 +264,12 @@ export async function createNewVersion(draftId: string, newBody: string) {
       revalidatePath(`/drafts/${draftId}`);
       return { success: true, versionNo: nextVer };
     } catch (err: any) {
-      console.warn('[Live version creation error]:', err.message);
+      console.error('[Supabase Version Creation Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to create new draft version.'}` };
     }
   }
 
-  // Demo store
+  // Demo store (Only reached when isDemoMode === true)
   const newVer = createDemoDraftVersion({
     draftId,
     body: trimmed,

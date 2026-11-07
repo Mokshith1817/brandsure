@@ -13,6 +13,8 @@ import { formatDate } from '@/lib/utils';
 import { CheckSquare, ArrowRight, Share2, Mail, Megaphone, BookOpen, FileText } from 'lucide-react';
 import type { Channel } from '@/types/database';
 
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
+
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
@@ -30,13 +32,19 @@ const channelIcons: Record<Channel, React.ComponentType<{ className?: string }>>
 export default async function ReviewQueuePage() {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Review Queue" />;
+  }
+
   if (!user || !profile) {
     redirect('/login');
   }
 
   let drafts: any[] = [];
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (isDemoMode) {
+    drafts = getDemoDrafts();
+  } else {
     try {
       const supabase = await createClient();
       const { data: rawDrafts } = await supabase
@@ -66,13 +74,9 @@ export default async function ReviewQueuePage() {
           };
         });
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.error('[Supabase Reviews Query Error]:', err.message);
     }
-  }
-
-  if (drafts.length === 0) {
-    drafts = getDemoDrafts();
   }
 
   // Filter for drafts that need review (in_review or checked)
@@ -86,6 +90,7 @@ export default async function ReviewQueuePage() {
       fullName={profile.full_name}
       role={profile.role}
       orgName={profile.organisations?.name || 'PayNest'}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-6">
         <div className="border-b border-slate-200 pb-5">

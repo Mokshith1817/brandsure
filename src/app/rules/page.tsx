@@ -5,12 +5,17 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { BookOpen, Database, Type, Check, Ban } from 'lucide-react';
 
 import { getCurrentSession } from '@/lib/auth';
-import { getDemoGuidelines, getDemoFacts, getDemoGlossary } from '@/lib/demo-data';
+import { getDemoGuidelines, getDemoFacts, getDemoGlossary, isSupabaseConfigured } from '@/lib/demo-data';
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RulesPage() {
   const { user, profile, isDemoMode } = await getCurrentSession();
+
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Brand Rulebook" />;
+  }
 
   if (!user || !profile) {
     redirect('/login');
@@ -20,7 +25,11 @@ export default async function RulesPage() {
   let facts: any[] = [];
   let glossary: any[] = [];
 
-  if (!isDemoMode) {
+  if (isDemoMode) {
+    guidelines = getDemoGuidelines();
+    facts = getDemoFacts();
+    glossary = getDemoGlossary();
+  } else {
     try {
       const supabase = await createClient();
       const [guidelinesRes, factsRes, glossaryRes] = await Promise.all([
@@ -31,14 +40,10 @@ export default async function RulesPage() {
       guidelines = guidelinesRes.data || [];
       facts = factsRes.data || [];
       glossary = glossaryRes.data || [];
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.error('[Supabase Rules Query Error]:', err.message);
     }
   }
-
-  if (guidelines.length === 0) guidelines = getDemoGuidelines();
-  if (facts.length === 0) facts = getDemoFacts();
-  if (glossary.length === 0) glossary = getDemoGlossary();
 
   return (
     <AppLayout
@@ -46,6 +51,7 @@ export default async function RulesPage() {
       fullName={profile.full_name}
       role={profile.role}
       orgName={profile.organisations?.name || 'PayNest'}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-8 pb-10">
         <div className="border-b border-slate-200 pb-5">

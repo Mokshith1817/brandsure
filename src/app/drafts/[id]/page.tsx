@@ -10,6 +10,7 @@ import {
   getDemoDraftVersions,
   isSupabaseConfigured,
 } from '@/lib/demo-data';
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 import { DraftReviewClient } from './DraftReviewClient';
 import type { Draft, DraftVersion, Finding, Comment, Decision } from '@/types/database';
 
@@ -28,6 +29,10 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
   const { id } = await params;
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Draft Review Workspace" />;
+  }
+
   if (!user || !profile) {
     redirect('/login');
   }
@@ -39,11 +44,21 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
   let decisions: any[] = [];
   let allVersions: DraftVersion[] = [];
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (isDemoMode) {
+    const demoDraftObj = getDemoDraftById(id);
+    if (demoDraftObj) {
+      draft = demoDraftObj.draft;
+      version = demoDraftObj.version || null;
+      findings = demoDraftObj.findings || [];
+    }
+    comments = getDemoComments(id);
+    decisions = getDemoDecisions(id);
+    allVersions = getDemoDraftVersions(id);
+  } else {
+    // Live Supabase query
     try {
       const supabase = await createClient();
 
-      // Fetch draft
       const { data: draftData } = await supabase
         .from('drafts')
         .select('*, profiles:creator_id (full_name, role)')
@@ -98,31 +113,9 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
           .order('created_at', { ascending: false });
         decisions = decData || [];
       }
-    } catch (err) {
-      console.warn('[Live draft detail query error, falling back to demo store]:', err);
+    } catch (err: any) {
+      console.error('[Supabase Draft Detail Error]:', err.message);
     }
-  }
-
-  // Fallback to in-memory demo drafts
-  if (!draft || !version) {
-    const demoDraftObj = getDemoDraftById(id);
-    if (demoDraftObj) {
-      draft = demoDraftObj.draft;
-      version = demoDraftObj.version || null;
-      findings = demoDraftObj.findings || [];
-    }
-  }
-
-  if (comments.length === 0) {
-    comments = getDemoComments(id);
-  }
-
-  if (decisions.length === 0) {
-    decisions = getDemoDecisions(id);
-  }
-
-  if (allVersions.length === 0) {
-    allVersions = getDemoDraftVersions(id);
   }
 
   if (!draft || !version) {
@@ -135,6 +128,7 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
       fullName={profile.full_name}
       role={profile.role}
       orgName={profile.organisations?.name || 'PayNest'}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-6">
         <DraftReviewClient

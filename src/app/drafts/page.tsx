@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { getCurrentSession } from '@/lib/auth';
 import { getDemoDrafts, isSupabaseConfigured } from '@/lib/demo-data';
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SeverityBadge } from '@/components/ui/SeverityBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -39,13 +40,19 @@ const channelIcons: Record<Channel, React.ComponentType<{ className?: string }>>
 export default async function DraftsListPage() {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Content Drafts" />;
+  }
+
   if (!user || !profile) {
     redirect('/login');
   }
 
   let drafts: any[] = [];
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (isDemoMode) {
+    drafts = getDemoDrafts();
+  } else {
     try {
       const supabase = await createClient();
       const { data: rawDrafts } = await supabase
@@ -75,13 +82,9 @@ export default async function DraftsListPage() {
           };
         });
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.error('[Supabase Drafts Query Error]:', err.message);
     }
-  }
-
-  if (drafts.length === 0) {
-    drafts = getDemoDrafts();
   }
 
   return (
@@ -90,6 +93,7 @@ export default async function DraftsListPage() {
       fullName={profile.full_name}
       role={profile.role}
       orgName={profile.organisations?.name || 'PayNest'}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-6">
         {/* Header */}

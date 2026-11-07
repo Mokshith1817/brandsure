@@ -19,6 +19,10 @@ import { revalidatePath } from 'next/cache';
 export async function createDraft(formData: { channel: Channel; text: string }) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Please log in to submit a draft.' };
   }
@@ -33,8 +37,8 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
   // 1. Run the Review Agent
   const agentResult = await runReviewAgent(text, channel, profile.org_id);
 
-  // 2. Persist Draft, Version, and Findings
-  if (isSupabaseConfigured() && !isDemoMode) {
+  // 2. Persist Draft, Version, and Findings in Supabase
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
 
@@ -52,7 +56,7 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
         .single();
 
       if (draftError || !draft) {
-        return { error: draftError?.message || 'Failed to create draft.' };
+        return { error: draftError?.message || 'Failed to create draft in database.' };
       }
 
       // Insert Version 1
@@ -68,7 +72,7 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
         .single();
 
       if (verError || !version) {
-        return { error: verError?.message || 'Failed to save draft version.' };
+        return { error: verError?.message || 'Failed to save draft version in database.' };
       }
 
       // Insert Findings
@@ -87,7 +91,10 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
           ai_generated: true,
         }));
 
-        await supabase.from('findings').insert(findingInserts);
+        const { error: findErr } = await supabase.from('findings').insert(findingInserts);
+        if (findErr) {
+          console.warn('[Supabase Findings Insert Warning]:', findErr.message);
+        }
       }
 
       // Record Agent Run trace
@@ -121,11 +128,12 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
       revalidatePath('/drafts');
       return { success: true, draftId: draft.id };
     } catch (err: any) {
-      console.warn('[Live Draft Creation Error, falling back to demo store]:', err.message);
+      console.error('[Supabase Draft Creation Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to persist draft.'}` };
     }
   }
 
-  // Demo / Offline Mode Persistence
+  // 3. Demo / Offline Mode Persistence (Only reached if isDemoMode === true)
   const demoResult = createDemoDraft({
     channel,
     text,
@@ -173,6 +181,10 @@ export async function updateFindingDisposition(params: {
 }) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Unauthorized.' };
   }
@@ -182,7 +194,7 @@ export async function updateFindingDisposition(params: {
   }
 
   // 1. Live Supabase update
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
 
@@ -238,11 +250,12 @@ export async function updateFindingDisposition(params: {
       revalidatePath('/drafts');
       return { success: true };
     } catch (err: any) {
-      console.warn('[Live finding update failed, falling back]:', err.message);
+      console.error('[Supabase Finding Update Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to update finding.'}` };
     }
   }
 
-  // 2. Demo Mode Update
+  // 2. Demo Mode Update (Only when isDemoMode === true)
   updateDemoFindingStatus(
     params.findingId,
     params.status,
@@ -283,11 +296,15 @@ export async function updateFindingDisposition(params: {
 export async function submitDraftForReview(draftId: string) {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return { error: 'Database not configured. Production requires a live Supabase connection.' };
+  }
+
   if (!user || !profile) {
     return { error: 'Unauthorized.' };
   }
 
-  if (isSupabaseConfigured() && !isDemoMode) {
+  if (!isDemoMode) {
     try {
       const supabase = await createClient();
 
@@ -337,8 +354,9 @@ export async function submitDraftForReview(draftId: string) {
       revalidatePath(`/drafts/${draftId}`);
       revalidatePath('/drafts');
       return { success: true };
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.error('[Supabase Submit Draft Error]:', err.message);
+      return { error: `Database error: ${err.message || 'Failed to submit draft.'}` };
     }
   }
 

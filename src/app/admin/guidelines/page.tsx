@@ -4,19 +4,26 @@ import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { GuidelinesClient } from './GuidelinesClient';
 import { getCurrentSession } from '@/lib/auth';
-import { getDemoGuidelines } from '@/lib/demo-data';
+import { getDemoGuidelines, isSupabaseConfigured } from '@/lib/demo-data';
+import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminGuidelinesPage() {
   const { user, profile, isDemoMode } = await getCurrentSession();
 
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    return <DatabaseNotConfigured pageName="Admin Guidelines Manager" />;
+  }
+
   if (!user || profile?.role !== 'admin') {
     redirect('/login');
   }
 
   let guidelines: any[] = [];
-  if (!isDemoMode) {
+  if (isDemoMode) {
+    guidelines = getDemoGuidelines();
+  } else {
     try {
       const supabase = await createClient();
       const { data } = await supabase
@@ -26,13 +33,9 @@ export default async function AdminGuidelinesPage() {
       if (data && data.length > 0) {
         guidelines = data;
       }
-    } catch {
-      // Fallback to demo
+    } catch (err: any) {
+      console.error('[Supabase Guidelines Query Error]:', err.message);
     }
-  }
-
-  if (guidelines.length === 0) {
-    guidelines = getDemoGuidelines();
   }
 
   return (
@@ -41,6 +44,7 @@ export default async function AdminGuidelinesPage() {
       fullName={profile.full_name}
       role={profile.role}
       orgName={profile.organisations?.name || 'PayNest'}
+      isDemoMode={isDemoMode}
     >
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
