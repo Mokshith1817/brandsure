@@ -12,9 +12,11 @@ export function startScroll(reduced = false): () => void {
 
   if (!reduced) {
     lenis = new Lenis({
-      lerp: 0.09,
+      lerp: 0.14,
       smoothWheel: true,
       syncTouch: false,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.5,
     });
   }
 
