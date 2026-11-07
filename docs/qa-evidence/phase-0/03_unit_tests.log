@@ -1,0 +1,18 @@
+npm notice run brandsure@1.0.0 test
+npm notice run vitest run
+
+ RUN  v3.2.7 /Users/mokshith/Projects/demo
+
+ ✓ tests/chart-utils.test.ts (4 tests) 2ms
+ ✓ tests/i18n.test.ts (4 tests) 6ms
+ ✓ tests/rag.test.ts (3 tests) 7ms
+ ✓ tests/verdict.test.ts (16 tests) 4ms
+ ✓ tests/forecast.test.ts (1 test) 40ms
+ ✓ tests/determinism.test.ts (2 tests) 43ms
+ ✓ tests/api.test.ts (6 tests) 44ms
+
+ Test Files  7 passed (7)
+      Tests  36 passed (36)
+   Start at  17:00:49
+   Duration  502ms (transform 169ms, setup 0ms, collect 353ms, tests 146ms, environment 1ms, prepare 430ms)
+

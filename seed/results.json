@@ -1,5 +1,5 @@
 {
-  "evaluated_at": "2026-11-06T03:09:22.417Z",
+  "evaluated_at": "2026-11-07T18:38:24.442Z",
   "total_drafts": 12,
   "flawed_drafts": 6,
   "clean_drafts": 6,
@@ -45,7 +45,7 @@
       "passed": true,
       "expected_count": 2,
       "detected_count": 2,
-      "duration_ms": 222,
+      "duration_ms": 423,
       "findings": [
         {
           "category": "claims",
@@ -70,7 +70,7 @@
       "passed": true,
       "expected_count": 2,
       "detected_count": 2,
-      "duration_ms": 1,
+      "duration_ms": 0,
       "findings": [
         {
           "category": "tone",
@@ -152,7 +152,7 @@
       "passed": true,
       "expected_count": 3,
       "detected_count": 3,
-      "duration_ms": 1,
+      "duration_ms": 0,
       "findings": [
         {
           "category": "terminology",
@@ -184,7 +184,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 150,
+      "duration_ms": 348,
       "findings": []
     },
     {
@@ -194,7 +194,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 104,
+      "duration_ms": 79,
       "findings": []
     },
     {
@@ -204,7 +204,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 132,
+      "duration_ms": 173,
       "findings": []
     },
     {
@@ -214,7 +214,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 108,
+      "duration_ms": 71,
       "findings": []
     },
     {
@@ -224,7 +224,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 145,
+      "duration_ms": 180,
       "findings": []
     },
     {
@@ -234,7 +234,7 @@
       "passed": true,
       "expected_count": 0,
       "detected_count": 0,
-      "duration_ms": 119,
+      "duration_ms": 75,
       "findings": []
     }
   ]
