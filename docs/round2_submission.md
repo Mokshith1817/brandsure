@@ -13,8 +13,8 @@
 
 Every feature listed below is fully implemented, verified, and testable end-to-end:
 
-1. **Dual-Mode Engine Architecture**:
-   - The application automatically detects whether Supabase environment variables are configured. If connected, it uses live PostgreSQL with `pgvector` and Row Level Security. If not configured or running offline, it seamlessly falls back to an in-memory/cookie-based demo store containing PayNest's full rulebook, sample drafts, and audit logs. This guarantees 100% evaluation reliability without external setup friction.
+1. **Data Store Truth & Mode Separation**:
+   - Production strictly requires a live Supabase PostgreSQL connection with `pgvector`, Row Level Security, and append-only database triggers. If credentials are missing in production, the app safely halts with a clear `DatabaseNotConfigured` gate. In local development, setting `DEMO_MODE=true` activates an in-memory/signed-cookie demo store pre-loaded with PayNest's rulebook, sample drafts, and audit trail, allowing judges to test without setup friction.
 
 2. **Role-Based Governance with 4 Personas**:
    - Four distinct roles: **Creator**, **Reviewer**, **Manager**, and **Admin**.
@@ -105,7 +105,7 @@ To maintain complete transparency with hackathon evaluators, the following featu
 ### Agent Design & Anti-Hallucination Guardrails
 - **Grounded Judging**: The LLM (`gemini-2.5-flash`) is provided *only* with the retrieved guideline snippets and structured facts. Each snippet is assigned an immutable ID.
 - **Strict Bounding**: The model must return the rule ID it relied upon. If an ungrounded claim is made or no rule applies, the agent returns `"source_type": "none"` and `"source_excerpt": "No approved source found."`
-- **Deterministic Fallback Layer**: If the Gemini API key is not supplied, rate-limited, or unavailable, the agent seamlessly falls back to a deterministic regex pattern engine containing verified regulatory rules (guaranteed returns, unsubstantiated superlatives, flippant tone). This ensures 0% crash probability during evaluation.
+- **Deterministic Fallback Layer**: If the Gemini API key is not supplied, rate-limited, or unavailable, the agent seamlessly falls back to a deterministic regex pattern engine containing verified regulatory rules (guaranteed returns, unsubstantiated superlatives, flippant tone). This ensures high reliability during evaluation without external disruptions.
 - **Verification of Suggested Fixes**: Every suggested fix is checked to ensure it softens or removes the non-compliant claim without inventing substitute figures.
 
 ---
@@ -114,12 +114,12 @@ To maintain complete transparency with hackathon evaluators, the following featu
 
 1. **Introduction of the Dual-Mode Engine**:
    - *Round 1 Plan*: Assumed live cloud Supabase connectivity for all evaluators.
-   - *Change*: Built a complete, zero-config in-memory/cookie demo store that activates whenever cloud database credentials are absent.
-   - *Why*: In live hackathon evaluations, external database connection latencies, firewall restrictions, or missing credentials can disrupt a demo. The dual-mode engine ensures any evaluator can clone the repo and run the app in 10 seconds with 100% functionality.
-2. **Deterministic Fallback for 100% Benchmark Availability**:
+   - *Change*: Built a complete, zero-config in-memory/cookie demo store that activates whenever cloud database credentials are absent in local development.
+   - *Why*: In live hackathon evaluations, external database connection latencies, firewall restrictions, or missing credentials can disrupt a demo. The dual-mode engine ensures any evaluator can clone the repo and test the app with full offline capabilities.
+2. **Deterministic Fallback for Reliable Benchmark Availability**:
    - *Round 1 Plan*: Relied entirely on external LLM calls for claim evaluation.
    - *Change*: Implemented a deterministic regex and rule matching layer that works in tandem with Gemini 2.5 Flash.
-   - *Why*: Eliminates test-suite flakiness caused by external API rate limits or network latency, guaranteeing 100% precision and recall on canonical benchmark sets.
+   - *Why*: Eliminates test-suite flakiness caused by external API rate limits or network latency, delivering 100% precision and recall on the 12-draft canonical benchmark test set.
 3. **Structured Span Highlighting over WYSIWYG Editing**:
    - *Round 1 Plan*: Considered integrating a rich-text editor (e.g., TipTap or Quill).
    - *Change*: Implemented structured span highlighting with inline accept/edit/dismiss buttons and a dedicated `DiffView`.
@@ -136,7 +136,7 @@ In Round 3, BrandSure will introduce a multimodal inspection pipeline powered by
 While Round 2 stores comprehensive finding dispositions, Round 3 will surface a rich analytical dashboard for brand compliance officers. The system will aggregate historical creator dismissals and managerial edits to automatically flag ambiguous, outdated, or frequently-contested guidelines (e.g., identifying that 40% of creators dismiss a specific superlative rule because it contradicts recent product feature updates). This transforms BrandSure from a reactive copy-checker into a proactive brand-intelligence platform that continuously improves the rulebook.
 
 ### 3. Scaled Benchmark Evaluation on a 200+ Production Corpus
-In Round 2, the benchmark runner verified 12 canonical test drafts achieving a 100% F1 score (14/14 True Positives, 0 False Positives, 0 False Negatives as recorded in `/seed/results.json`). For Round 3, we will expand this benchmark suite to 200+ multi-channel drafts sourced from real-world fintech campaigns, covering edge-case comparative advertising, multilingual vernacular copy (Hindi, Tamil, Telugu), and complex multi-claim marketing paragraphs. We will measure latency percentiles ($p50, p95, p99$) and RRF retrieval accuracy across large knowledge bases exceeding 5,000 guideline chunks.
+In Round 2, the benchmark runner verified 12 canonical test drafts achieving 100% F1 score on the 12-draft PayNest benchmark test set (14/14 True Positives, 0 False Positives, 0 False Negatives as recorded in `seed/results.json`). For Round 3, we will expand this benchmark suite to 200+ multi-channel drafts sourced from real-world fintech campaigns, covering edge-case comparative advertising, multilingual vernacular copy (Hindi, Tamil, Telugu), and complex multi-claim marketing paragraphs. We will measure latency percentiles ($p50, p95, p99$) and RRF retrieval accuracy across large knowledge bases exceeding 5,000 guideline chunks.
 
 ---
 

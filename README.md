@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)]()
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20pgvector-emerald.svg)]()
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-indigo.svg)]()
-[![Benchmark](https://img.shields.io/badge/Benchmark-100%25%20F1%20Score-success.svg)]()
+[![Benchmark](https://img.shields.io/badge/Benchmark-100%25%20F1%20(12--draft%20test%20set)-success.svg)]()
 
 ---
 
@@ -19,7 +19,7 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
 - **Strictly Bounded AI**: The AI only reads, flags, and suggests against *approved* internal rulebooks, fact bases, and glossaries. It **never invents rules or facts**. If an ungrounded claim is found, it explicitly declares *"No approved source found"*.
 - **Humans Decide**: The AI cannot approve, reject, publish, or overwrite text. Final editorial and compliance actions remain strictly in human hands (Creators, Reviewers, Managers).
 - **Verifiable Citations**: Every finding includes the exact rule or fact cited, a plain-language explanation of why it was flagged, and an intent-preserving rewrite visibly labelled *"AI-generated suggestion"*.
-- **Tamper-Resistant Audit Trail**: Every tool execution, creator disposition (accept/edit/dismiss), and manager verdict is recorded in an append-only database table protected by PostgreSQL triggers.
+- **Append-Only Audit Log**: Every tool execution, creator disposition (accept/edit/dismiss), and manager verdict is recorded in an append-only database table protected by PostgreSQL triggers in production; in-memory log in demo mode.
 
 ---
 
@@ -50,7 +50,7 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
       └── Compliance Manager approves, requests changes, or rejects with mandatory justification
       │
       ▼
-[Tamper-Proof Audit Trail] Append-only audit record created for every action
+[Append-Only Audit Log] Postgres trigger prevents UPDATE and DELETE in production
 ```
 
 ---
@@ -74,10 +74,10 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
 
 ## 4. Architecture Summary
 
-### Dual-Mode Engine Architecture
-BrandSure includes a dual-mode engine designed for resilience:
-1. **Cloud Supabase Mode**: Connects to Supabase Postgres, executes pgvector cosine distance queries, and enforces Row-Level Security policies.
-2. **Instant Zero-Config Demo Mode**: Automatically activates if Supabase credentials are not provided or during offline evaluation. Uses an in-memory/cookie store pre-loaded with PayNest's full rulebook, sample drafts, and audit logs. Ensures **100% judge reliability** with zero setup friction.
+### Data Store Architecture
+BrandSure is built with explicit data store separation:
+1. **Cloud Supabase Mode (Production)**: Connects to Supabase Postgres, executes pgvector cosine distance queries, and enforces Row-Level Security policies and append-only database triggers. Production strictly requires live Supabase credentials and halts with a clear `DatabaseNotConfigured` gate if missing.
+2. **Demo Mode (Local Development)**: Permitted exclusively in development environments when `DEMO_MODE=true` is set. Uses an in-memory store and cryptographically signed session cookies pre-loaded with PayNest's rulebook, sample drafts, and audit events, ensuring seamless evaluator testing without setup friction.
 
 ### Bounded Retrieval & Reciprocal Rank Fusion (RRF)
 Guideline retrieval combines two complementary search methods:
