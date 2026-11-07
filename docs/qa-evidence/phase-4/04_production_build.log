@@ -1,0 +1,50 @@
+npm notice run brandsure@1.0.0 build
+npm notice run next build
+   ▲ Next.js 15.5.27
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (115kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (272kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 5.2s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/12) ...
+   Generating static pages (3/12) 
+   Generating static pages (6/12) 
+   Generating static pages (9/12) 
+ ✓ Generating static pages (12/12)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      136 B         103 kB
+├ ○ /_not-found                            136 B         103 kB
+├ ○ /about-ai                              179 B         107 kB
+├ ƒ /admin/facts                         3.19 kB         125 kB
+├ ƒ /admin/glossary                      3.08 kB         125 kB
+├ ƒ /admin/guidelines                    3.46 kB         126 kB
+├ ƒ /api/advice                            136 B         103 kB
+├ ƒ /api/forecast                          136 B         103 kB
+├ ƒ /api/health                            136 B         103 kB
+├ ƒ /approvals                           1.22 kB         114 kB
+├ ƒ /audit                               4.55 kB         127 kB
+├ ○ /demo-guide                            179 B         107 kB
+├ ƒ /drafts                              1.22 kB         114 kB
+├ ƒ /drafts/[id]                         16.1 kB         138 kB
+├ ƒ /drafts/new                          3.35 kB         126 kB
+├ ○ /icon.svg                                0 B            0 B
+├ ○ /login                               4.22 kB         121 kB
+├ ƒ /reviews                             1.22 kB         114 kB
+├ ƒ /rules                                 185 B         113 kB
+└ ○ /showcase                              19 kB         126 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-ce8c7c75002f810b.js       46.5 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.94 kB
+
+
+ƒ Middleware                             99.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

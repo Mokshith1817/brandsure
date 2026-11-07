@@ -105,14 +105,14 @@ export function AuditLogClient({ logs }: AuditLogClientProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-emerald-950 flex items-center gap-2">
-            Append-Only Non-Repudiation Guarantee
+            Append-Only Governance Log
             <span className="text-[11px] font-normal bg-emerald-200/60 text-emerald-800 px-2 py-0.5 rounded-full">
-              PostgreSQL Trigger Active
+              PostgreSQL Trigger in Production
             </span>
           </h2>
           <p className="text-xs text-emerald-800 mt-0.5 leading-relaxed">
-            Every AI agent analysis, user finding disposition, and management approval is permanently recorded with a timestamp.
-            The database trigger <code className="bg-emerald-100 px-1 py-0.5 rounded text-[11px] font-mono">trg_audit_log_append_only</code> strictly prevents any modification or deletion.
+            Every AI agent analysis, finding disposition, and management decision is recorded with actor metadata and timestamp.
+            In production, the Postgres trigger <code className="bg-emerald-100 px-1 py-0.5 rounded text-[11px] font-mono">trg_audit_log_append_only</code> strictly forbids all <code className="font-mono">UPDATE</code> and <code className="font-mono">DELETE</code> statements.
           </p>
         </div>
       </div>
@@ -160,7 +160,7 @@ export function AuditLogClient({ logs }: AuditLogClientProps) {
       ) : (
         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full min-w-[640px] text-left text-sm border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   <th className="py-3 px-4">Timestamp</th>

@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   title: 'BrandSure — Pre-publication Brand Governance for Fintech',
   description:
     'A pre-publication brand-governance checkpoint for fintech content. Grounded checks against approved facts, guidelines, and glossary.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default function RootLayout({
