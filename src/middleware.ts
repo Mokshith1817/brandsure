@@ -1,5 +1,8 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { verifySignedSessionCookie } from '@/lib/session';
+import { isDemoModeAllowed } from '@/lib/data-store';
+import { getDemoDraftById } from '@/lib/demo-data';
 
 const DEMO_COOKIE_NAME = 'brandsure_demo_session';
 
@@ -12,24 +15,33 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Check for Demo Cookie Session
+  // 1. Check for Demo Cookie Session (strictly cryptographically verified)
   let user: { id: string; email: string } | null = null;
   let userRole: string | null = null;
 
-  const demoCookie = request.cookies.get(DEMO_COOKIE_NAME)?.value;
-  if (demoCookie) {
-    try {
-      const parsed = JSON.parse(demoCookie);
-      if (parsed.email && parsed.role) {
-        user = { id: `demo-${parsed.role}`, email: parsed.email };
-        userRole = parsed.role;
+  if (isDemoModeAllowed()) {
+    const demoCookie = request.cookies.get(DEMO_COOKIE_NAME)?.value;
+    if (demoCookie) {
+      const verified = await verifySignedSessionCookie(demoCookie);
+      if (verified) {
+        const userId =
+          verified.userId ||
+          (verified.email === 'creator@paynest.demo'
+            ? 'demo-creator'
+            : verified.email === 'reviewer@paynest.demo'
+            ? 'demo-reviewer'
+            : verified.email === 'manager@paynest.demo'
+            ? 'demo-manager'
+            : verified.email === 'admin@paynest.demo'
+            ? 'demo-admin'
+            : `demo-${verified.email.split('@')[0]}`);
+        user = { id: userId, email: verified.email };
+        userRole = verified.role;
       }
-    } catch {
-      // Ignore invalid demo cookie
     }
   }
 
-  // 2. Check Supabase Auth if no demo cookie and Supabase credentials exist
+  // 2. Check Supabase Auth if no verified demo cookie and Supabase credentials exist
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const isRealSupabase = supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co');
@@ -90,14 +102,22 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Protected paths: If not logged in, redirect to /login
+  const isHtmlRequest = request.headers.get('accept')?.includes('text/html') ?? false;
+
+  // Protected paths: If not logged in, reject with 401 for API/curl or redirect for browser
   if (!user) {
+    if (!isHtmlRequest) {
+      return NextResponse.json({ error: 'Unauthorized: Authentication required.' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Role-based protection: Admin only routes
   if (pathname.startsWith('/admin')) {
     if (userRole !== 'admin') {
+      if (!isHtmlRequest) {
+        return NextResponse.json({ error: 'Forbidden: Admin role required.' }, { status: 403 });
+      }
       return NextResponse.redirect(new URL('/drafts', request.url));
     }
   }
@@ -105,7 +125,59 @@ export async function middleware(request: NextRequest) {
   // Audit log: Admin and Manager only
   if (pathname.startsWith('/audit')) {
     if (userRole !== 'admin' && userRole !== 'manager') {
+      if (!isHtmlRequest) {
+        return NextResponse.json({ error: 'Forbidden: Compliance Manager or Admin role required.' }, { status: 403 });
+      }
       return NextResponse.redirect(new URL('/drafts', request.url));
+    }
+  }
+
+  // Approvals queue: Manager and Admin only
+  if (pathname.startsWith('/approvals')) {
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      if (!isHtmlRequest) {
+        return NextResponse.json({ error: 'Forbidden: Compliance Manager or Admin role required.' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/drafts', request.url));
+    }
+  }
+
+  // Review queue: Reviewer, Manager, and Admin only
+  if (pathname.startsWith('/reviews')) {
+    if (userRole !== 'reviewer' && userRole !== 'manager' && userRole !== 'admin') {
+      if (!isHtmlRequest) {
+        return NextResponse.json({ error: 'Forbidden: Reviewer, Manager, or Admin role required.' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/drafts', request.url));
+    }
+  }
+
+  // Creator Draft Isolation: Creator A cannot view Creator B's draft
+  if (userRole === 'creator' && pathname.startsWith('/drafts/')) {
+    const draftId = pathname.replace('/drafts/', '').split('/')[0];
+    if (draftId && draftId !== 'new') {
+      if (isDemoModeAllowed()) {
+        const demoDraftObj = getDemoDraftById(draftId);
+        if (demoDraftObj && user && demoDraftObj.draft.creator_id !== user.id) {
+          if (!isHtmlRequest) {
+            return NextResponse.json(
+              { error: 'Forbidden: Creators may only access drafts they personally authored.' },
+              { status: 403 }
+            );
+          }
+          return new NextResponse(
+            `<!DOCTYPE html><html><head><title>403 Forbidden | BrandSure</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;">
+              <h1 style="color:#dc2626;">Access Denied (403 Forbidden)</h1>
+              <p>You do not have permission to view this draft. Creators may only access drafts they personally authored.</p>
+              <a href="/drafts" style="color:#4f46e5;font-weight:600;">Return to My Drafts</a>
+            </body></html>`,
+            {
+              status: 403,
+              headers: { 'content-type': 'text/html; charset=utf-8' },
+            }
+          );
+        }
+      }
     }
   }
 

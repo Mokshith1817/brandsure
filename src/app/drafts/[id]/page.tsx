@@ -1,5 +1,7 @@
 import React from 'react';
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { getCurrentSession } from '@/lib/auth';
@@ -120,6 +122,36 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
 
   if (!draft || !version) {
     notFound();
+  }
+
+  // Enforce role isolation: Creators can ONLY read their own drafts
+  if (profile.role === 'creator' && draft.creator_id !== user.id) {
+    return (
+      <AppLayout
+        userEmail={user.email}
+        fullName={profile.full_name}
+        role={profile.role}
+        orgName={profile.organisations?.name || 'PayNest'}
+        isDemoMode={isDemoMode}
+      >
+        <div className="bg-white border border-red-200 rounded-xl p-8 max-w-lg mx-auto text-center shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900 mb-1">Access Denied (403 Forbidden)</h2>
+          <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+            You do not have permission to view this draft. Creators may only access drafts they personally authored.
+          </p>
+          <Link
+            href="/drafts"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to My Drafts</span>
+          </Link>
+        </div>
+      </AppLayout>
+    );
   }
 
   return (

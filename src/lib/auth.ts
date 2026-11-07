@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from './supabase/server';
 import { DEMO_PROFILES, DEMO_ORG, isSupabaseConfigured, isDemoModeAllowed } from './demo-data';
+import { verifySignedSessionCookie } from './session';
 import type { Role, Profile } from '@/types/database';
 
 export interface UserSession {
@@ -44,33 +45,39 @@ export async function getCurrentSession(): Promise<UserSession> {
     }
   }
 
-  // 2. Fallback to Demo Cookie session (strictly when demo mode is allowed)
+  // 2. Demo Cookie session (strictly cryptographically signed and verified)
   if (isDemoModeAllowed()) {
-    const demoCookie = cookieStore.get(DEMO_COOKIE_NAME)?.value;
-    if (demoCookie) {
-      try {
-        const parsed = JSON.parse(demoCookie);
-        const email = parsed.email || 'admin@paynest.demo';
-        const role = (parsed.role || 'admin') as Role;
-        const fullName = parsed.full_name || DEMO_PROFILES[email]?.full_name || 'PayNest Demo User';
+    const rawToken = cookieStore.get(DEMO_COOKIE_NAME)?.value;
+    if (rawToken) {
+      const verified = await verifySignedSessionCookie(rawToken);
+      if (verified) {
+        const userId =
+          verified.userId ||
+          (verified.email === 'creator@paynest.demo'
+            ? 'demo-creator'
+            : verified.email === 'reviewer@paynest.demo'
+            ? 'demo-reviewer'
+            : verified.email === 'manager@paynest.demo'
+            ? 'demo-manager'
+            : verified.email === 'admin@paynest.demo'
+            ? 'demo-admin'
+            : `demo-${verified.email.split('@')[0]}`);
 
         return {
           user: {
-            id: `demo-${role}`,
-            email,
+            id: userId,
+            email: verified.email,
           },
           profile: {
-            id: `demo-${role}`,
-            org_id: DEMO_ORG.id,
-            full_name: fullName,
-            role,
+            id: userId,
+            org_id: verified.org_id,
+            full_name: verified.full_name,
+            role: verified.role,
             created_at: new Date().toISOString(),
             organisations: { name: DEMO_ORG.name },
           },
           isDemoMode: true,
         };
-      } catch {
-        // Invalid cookie, proceed
       }
     }
   }

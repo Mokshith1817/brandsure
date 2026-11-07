@@ -1,0 +1,28 @@
+========================================================================
+BrandSure Phase 2: Role Security & Tamper Test Runner
+Target: http://localhost:3000
+========================================================================
+
+--- Test 1: Role Escalation Cookie Tampering ---
+[PASS] Tamper 1: Creator tampering role cookie to "manager" requesting /approvals
+       Evidence: HTTP status 401 (Expected 401/403). Response: {"error":"Unauthorized: Authentication required."}
+
+--- Test 2: Reviewer Forbidden from Approvals & Admin ---
+[PASS] Tamper 2: Reviewer attempting manager/admin actions (/approvals & /admin)
+       Evidence: /approvals returned HTTP 403 (Expected 403); /admin returned HTTP 403 (Expected 403)
+
+--- Test 3: Creator A Requesting Creator B Draft ---
+[PASS] Tamper 3: Creator B accessing Creator A draft (/drafts/draft-demo-1)
+       Evidence: HTTP status 403 (Expected 403); 403 Access Denied rendered (true); draft copy hidden (true)
+
+--- Test 4: Logged-out Visitor Accessing Protected Endpoints ---
+[PASS] Tamper 4: Logged-out visitor requesting /audit, /approvals, /rules, /drafts
+       Evidence: /audit: HTTP 401, /approvals: HTTP 401, /rules: HTTP 401, /drafts: HTTP 401
+
+--- Test 5: Replay of Expired and Malformed Tokens ---
+[PASS] Tamper 5: Replaying expired token (exp in past) and malformed cookie
+       Evidence: Expired token: HTTP 401; Malformed token: HTTP 401
+
+========================================================================
+SUMMARY: 5 passed, 0 failed out of 5 tamper tests.
+========================================================================

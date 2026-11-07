@@ -51,19 +51,27 @@ export default async function DraftsListPage() {
   let drafts: any[] = [];
 
   if (isDemoMode) {
-    drafts = getDemoDrafts();
+    const allDrafts = getDemoDrafts();
+    drafts = profile.role === 'creator'
+      ? allDrafts.filter((d) => d.creator_id === user.id)
+      : allDrafts;
   } else {
     try {
       const supabase = await createClient();
-      const { data: rawDrafts } = await supabase
+      let query = supabase
         .from('drafts')
         .select(`
           *,
           profiles:creator_id (full_name, role),
           draft_versions:draft_versions (id, version_no, body, findings:findings (id, severity, status))
         `)
-        .eq('org_id', profile.org_id)
-        .order('created_at', { ascending: false });
+        .eq('org_id', profile.org_id);
+
+      if (profile.role === 'creator') {
+        query = query.eq('creator_id', user.id);
+      }
+
+      const { data: rawDrafts } = await query.order('created_at', { ascending: false });
 
       if (rawDrafts && rawDrafts.length > 0) {
         drafts = rawDrafts.map((d: any) => {

@@ -6,21 +6,21 @@ import { getEmbedding, chunkGuidelineText } from '@/lib/embeddings';
 import { writeAudit } from '@/lib/audit';
 import { revalidatePath } from 'next/cache';
 
-async function getAdminUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+import { getCurrentSession } from '@/lib/auth';
+import { isSupabaseConfigured } from '@/lib/demo-data';
 
-  if (!user) {
+async function getAdminUser() {
+  const { user, profile, isDemoMode } = await getCurrentSession();
+
+  if (!isSupabaseConfigured() && !isDemoMode) {
+    throw new Error('Database not configured. Production requires a live Supabase connection.');
+  }
+
+  if (!user || !profile) {
     throw new Error('Unauthorized: Please log in.');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('org_id, role, full_name')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile || profile.role !== 'admin') {
+  if (profile.role !== 'admin') {
     throw new Error('Forbidden: Admin access required.');
   }
 

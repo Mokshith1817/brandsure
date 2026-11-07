@@ -1,0 +1,38 @@
+npm notice run brandsure@1.0.0 test:benchmark
+npm notice run tsx scripts/run_testset.ts
+◇ injected env (0) from .env
+🧪 Starting BrandSure Benchmark Suite (12 Test Drafts)...
+
+   ✅ [draft-01] (social) - Detected 2/2 findings (1ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent","service":"generativelanguage.googleapis.com"}}]
+   ✅ [draft-02] (ad) - Detected 2/2 findings (427ms)
+   ✅ [draft-03] (social) - Detected 2/2 findings (0ms)
+   ✅ [draft-04] (email) - Detected 2/2 findings (1ms)
+   ✅ [draft-05] (blog) - Detected 3/3 findings (0ms)
+   ✅ [draft-06] (ad) - Detected 3/3 findings (0ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent","service":"generativelanguage.googleapis.com"}}]
+   ✅ [draft-07] (social) - Detected 0/0 findings (354ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"service":"generativelanguage.googleapis.com","method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent"}}]
+   ✅ [draft-08] (ad) - Detected 0/0 findings (87ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent","service":"generativelanguage.googleapis.com"}}]
+   ✅ [draft-09] (email) - Detected 0/0 findings (171ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent","service":"generativelanguage.googleapis.com"}}]
+   ✅ [draft-10] (social) - Detected 0/0 findings (356ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent","service":"generativelanguage.googleapis.com"}}]
+   ✅ [draft-11] (ad) - Detected 0/0 findings (90ms)
+[Gemini Claim Evaluation Note]: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [401 Unauthorized] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_TYPE_UNSUPPORTED","metadata":{"service":"generativelanguage.googleapis.com","method":"google.ai.generativelanguage.v1beta.GenerativeService.GenerateContent"}}]
+   ✅ [draft-12] (blog) - Detected 0/0 findings (80ms)
+
+=============================================================
+📊 BrandSure Compliance Engine Benchmark Results:
+=============================================================
+ - Total Drafts Evaluated : 12
+ - True Positives         : 14 / 14
+ - False Positives        : 0
+ - False Negatives       : 0
+ - Precision              : 100.0%
+ - Recall                 : 100.0%
+ - F1 Score               : 100.0%
+=============================================================
+📁 Detailed results saved to: /Users/mokshith/Projects/demo/seed/results.json
+

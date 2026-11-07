@@ -12,6 +12,7 @@ import {
   updateDemoDraftStatus,
   addDemoAuditLog,
   getDemoOpenHighFindingsCount,
+  getDemoDraftById,
 } from '@/lib/demo-data';
 import type { Channel, FindingStatus, DraftStatus } from '@/types/database';
 import { revalidatePath } from 'next/cache';
@@ -193,6 +194,24 @@ export async function updateFindingDisposition(params: {
     return { error: 'A written reason is required when dismissing a compliance finding.' };
   }
 
+  // Enforce creator horizontal isolation: Creators can only modify findings on drafts they own
+  if (profile.role === 'creator') {
+    let draftCreatorId: string | null = null;
+    if (isDemoMode) {
+      const d = getDemoDraftById(params.draftId);
+      draftCreatorId = d?.draft.creator_id || null;
+    } else {
+      try {
+        const supabase = await createClient();
+        const { data: d } = await supabase.from('drafts').select('creator_id').eq('id', params.draftId).single();
+        draftCreatorId = d?.creator_id || null;
+      } catch {}
+    }
+    if (draftCreatorId && draftCreatorId !== user.id) {
+      return { error: 'Forbidden: Creators can only modify findings on their own drafts.' };
+    }
+  }
+
   // 1. Live Supabase update
   if (!isDemoMode) {
     try {
@@ -302,6 +321,24 @@ export async function submitDraftForReview(draftId: string) {
 
   if (!user || !profile) {
     return { error: 'Unauthorized.' };
+  }
+
+  // Enforce creator horizontal isolation: Creators can only submit drafts they personally created
+  if (profile.role === 'creator') {
+    let draftCreatorId: string | null = null;
+    if (isDemoMode) {
+      const d = getDemoDraftById(draftId);
+      draftCreatorId = d?.draft.creator_id || null;
+    } else {
+      try {
+        const supabase = await createClient();
+        const { data: d } = await supabase.from('drafts').select('creator_id').eq('id', draftId).single();
+        draftCreatorId = d?.creator_id || null;
+      } catch {}
+    }
+    if (draftCreatorId && draftCreatorId !== user.id) {
+      return { error: 'Forbidden: Creators can only submit their own drafts for review.' };
+    }
   }
 
   if (!isDemoMode) {

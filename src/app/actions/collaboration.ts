@@ -10,6 +10,7 @@ import {
   recordDemoDecision,
   createDemoDraftVersion,
   addDemoAuditLog,
+  getDemoDraftById,
 } from '@/lib/demo-data';
 import { revalidatePath } from 'next/cache';
 
@@ -197,6 +198,16 @@ export async function createNewVersion(draftId: string, newBody: string) {
     return { error: 'Version content cannot be empty.' };
   }
 
+  if (isDemoMode) {
+    const existing = getDemoDraftById(draftId);
+    if (!existing) {
+      return { error: 'Draft not found.' };
+    }
+    if (profile.role === 'creator' && existing.draft.creator_id !== user.id) {
+      return { error: 'Forbidden: Creators can only create new versions for their own drafts.' };
+    }
+  }
+
   // Run Review Agent on the new version content
   const agentRes = await runReviewAgent(trimmed, 'social', profile.org_id);
 
@@ -206,12 +217,16 @@ export async function createNewVersion(draftId: string, newBody: string) {
 
       const { data: draft, error: fetchErr } = await supabase
         .from('drafts')
-        .select('current_version')
+        .select('current_version, created_by')
         .eq('id', draftId)
         .single();
 
       if (fetchErr || !draft) {
         return { error: fetchErr?.message || 'Draft not found.' };
+      }
+
+      if (profile.role === 'creator' && draft.created_by !== user.id) {
+        return { error: 'Forbidden: Creators can only create new versions for their own drafts.' };
       }
 
       const nextVer = (draft.current_version || 1) + 1;
