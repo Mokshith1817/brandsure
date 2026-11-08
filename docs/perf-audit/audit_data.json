@@ -1,0 +1,229 @@
+{
+  "date": "2026-11-06T11:03:15.657Z",
+  "environment": {
+    "url": "http://localhost:3000",
+    "build": "Next.js 15.5.27 (Production standalone on port 3000)",
+    "browser": "Chromium (Google Chrome 133+ Engine on macOS)",
+    "engine": "Blink / V8"
+  },
+  "gates": {},
+  "screens": {
+    "showcase": {
+      "path": "/showcase",
+      "loadTimeMs": 902,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [
+        {
+          "url": "http://localhost:3000/favicon.ico",
+          "status": 404
+        }
+      ],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_showcase_profileA.png"
+    },
+    "login": {
+      "path": "/login",
+      "loadTimeMs": 872,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_login_profileA.png"
+    },
+    "demo-guide": {
+      "path": "/demo-guide",
+      "loadTimeMs": 992,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_demo-guide_profileA.png"
+    },
+    "about-ai": {
+      "path": "/about-ai",
+      "loadTimeMs": 993,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_about-ai_profileA.png"
+    },
+    "rules": {
+      "path": "/rules",
+      "loadTimeMs": 991,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_rules_profileA.png"
+    },
+    "drafts": {
+      "path": "/drafts",
+      "loadTimeMs": 991,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_drafts_profileA.png"
+    },
+    "draft_new": {
+      "path": "/drafts/new",
+      "loadTimeMs": 993,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_draft_new_profileA.png"
+    },
+    "draft_workspace": {
+      "path": "/drafts/draft-demo-1",
+      "loadTimeMs": 573,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_draft_workspace_profileA.png"
+    },
+    "reviews": {
+      "path": "/reviews",
+      "loadTimeMs": 993,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_reviews_profileA.png"
+    },
+    "approvals": {
+      "path": "/approvals",
+      "loadTimeMs": 993,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_approvals_profileA.png"
+    },
+    "audit": {
+      "path": "/audit",
+      "loadTimeMs": 994,
+      "lcpMs": 0,
+      "cls": 0,
+      "failedRequests": [],
+      "screenshot": "/Users/mokshith/Projects/demo/docs/perf-audit/screen_audit_profileA.png"
+    }
+  },
+  "buttonTimings": [
+    {
+      "control": "Sign in button",
+      "page": "/login",
+      "role": "guest",
+      "firstFeedbackMs": 25,
+      "totalActionMs": 35,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Showcase link pill",
+      "page": "/login",
+      "role": "guest",
+      "firstFeedbackMs": 7,
+      "totalActionMs": 7,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Demo guide link",
+      "page": "/login",
+      "role": "guest",
+      "firstFeedbackMs": 17,
+      "totalActionMs": 17,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "AI Run Check trigger",
+      "page": "/drafts/draft-demo-1",
+      "role": "creator",
+      "firstFeedbackMs": 25,
+      "totalActionMs": 35,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Accept finding button",
+      "page": "/drafts/draft-demo-1",
+      "role": "creator",
+      "firstFeedbackMs": 35,
+      "totalActionMs": 38,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Dismiss finding button",
+      "page": "/drafts/draft-demo-1",
+      "role": "creator",
+      "firstFeedbackMs": 31,
+      "totalActionMs": 31,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Submit for review CTA",
+      "page": "/drafts/draft-demo-1",
+      "role": "creator",
+      "firstFeedbackMs": 31,
+      "totalActionMs": 31,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Open review queue item",
+      "page": "/reviews",
+      "role": "reviewer",
+      "firstFeedbackMs": 9,
+      "totalActionMs": 9,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Manager approve button",
+      "page": "/approvals",
+      "role": "manager",
+      "firstFeedbackMs": 25,
+      "totalActionMs": 35,
+      "responsive": true,
+      "hasLoadingState": false
+    },
+    {
+      "control": "Audit search filter",
+      "page": "/audit",
+      "role": "admin",
+      "firstFeedbackMs": 9,
+      "totalActionMs": 9,
+      "responsive": true,
+      "hasLoadingState": false
+    }
+  ],
+  "scrollReports": {
+    "showcase": {
+      "frames": 270,
+      "p50": 16.7,
+      "p95": 16.8,
+      "p99": 16.8,
+      "worst": 16.8,
+      "over16": 76,
+      "over33": 0,
+      "longTasks": 0,
+      "longestUnchangedScrollMs": 100
+    },
+    "draft_workspace": {
+      "frames": 270,
+      "p50": 16.7,
+      "p95": 16.8,
+      "p99": 16.8,
+      "worst": 16.8,
+      "over16": 67,
+      "over33": 0,
+      "longTasks": 0,
+      "longestUnchangedScrollMs": 100
+    }
+  },
+  "consoleLogCounts": {
+    "errors": 1,
+    "warnings": 22
+  },
+  "idleStats": {
+    "fpsSample": 60,
+    "hasContinuousCpuSpin": false
+  }
+}

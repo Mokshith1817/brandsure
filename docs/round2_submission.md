@@ -3,9 +3,9 @@
 **Project**: BrandSure — Pre-Publication Brand Governance for Fintech  
 **Event**: CodeNexus India 2026, Round 2 (Functional Product)  
 **Demonstration Brand**: PayNest (fictional UPI payments and investing app)  
-**Date**: 7 November 2026  
+**Date**: 8 November 2026  
 **Repository**: [https://github.com/Mokshith1817/demo](https://github.com/Mokshith1817/demo)  
-**Live Application**: [http://localhost:3000](http://localhost:3000) (or deployed Vercel URL)
+**Live Application**: [http://localhost:3000](http://localhost:3000) (Production build running locally, or deployed Vercel URL per deployment guide)
 
 ---
 
@@ -14,11 +14,14 @@
 Every feature listed below is fully implemented, verified, and testable end-to-end:
 
 1. **Data Store Truth & Mode Separation**:
-   - Production strictly requires a live Supabase PostgreSQL connection with `pgvector`, Row Level Security, and append-only database triggers. If credentials are missing in production, the app safely halts with a clear `DatabaseNotConfigured` gate. In local development, setting `DEMO_MODE=true` activates an in-memory/signed-cookie demo store pre-loaded with PayNest's rulebook, sample drafts, and audit trail, allowing judges to test without setup friction.
+   - Production strictly requires a live Supabase PostgreSQL connection with `pgvector`, Row Level Security, and append-only database triggers. If credentials are missing in production (`NODE_ENV=production`), the app safely halts with a clear `DatabaseNotConfigured` refusal gate. In local development, setting `DEMO_MODE=true` activates an in-memory demo store pre-loaded with PayNest's rulebook, sample drafts, and audit trail, allowing judges to test without setup friction.
+   - The UI displays a persistent top banner in demo mode and an explicit data store indicator in the navigation bar (`Data store: Demo store (development)` vs `Data store: Supabase`).
 
-2. **Role-Based Governance with 4 Personas**:
+2. **Role-Based Governance with 4 Personas & HMAC Security**:
    - Four distinct roles: **Creator**, **Reviewer**, **Manager**, and **Admin**.
-   - Server-side role enforcement protects actions (e.g., reviewers cannot approve; non-admins cannot edit guidelines).
+   - Cryptographically signed session cookies using Web Crypto HMAC-SHA256 (`src/lib/session.ts`) with timing-safe signature comparison to prevent tampering.
+   - Server-side role enforcement re-checked in Edge middleware (`src/middleware.ts`) and Server Actions (`actions/auth.ts`, `actions/collaboration.ts`, `actions/drafts.ts`, `actions/admin.ts`).
+   - **Creator Draft Isolation**: Creators can view and edit only their own drafts (`creator_id === user.id`). Unauthorized cross-creator draft access is rejected with HTTP 403 Forbidden.
    - 1-click persona switcher on `/login` allows instant switching between all four accounts without typing passwords.
 
 3. **Bounded Compliance Review Agent**:
@@ -26,7 +29,7 @@ Every feature listed below is fully implemented, verified, and testable end-to-e
      - `check_terminology`: Exact matching against approved vs. banned glossary terms (e.g., "members" vs. "customers").
      - `lookup_fact`: Deterministic extraction and verification of numbers, fees, and operational claims against the structured `facts` table.
      - `retrieve_guideline`: Hybrid vector similarity (`pgvector`) and full-text search (PostgreSQL `tsvector`) with Reciprocal Rank Fusion (RRF).
-     - `judge_claim`: Semantic evaluation using Google Gemini 2.5 Flash, strictly bounded by retrieved snippets, with a deterministic regex fallback layer.
+     - `judge_claim`: Semantic evaluation using Google Gemini 2.5 Flash, strictly bounded by retrieved snippets, with a deterministic regex and pattern fallback layer.
      - `check_accessibility`: Formatting and readability rules (shouting caps, repeated punctuation, plain reading level).
    - **Zero Hallucination Policy**: If no approved source supports a verdict, the system explicitly outputs *"No approved source found"*.
 
@@ -53,10 +56,10 @@ Every feature listed below is fully implemented, verified, and testable end-to-e
    - Three decisive actions: **Approve**, **Request Changes**, **Reject**.
    - Mandatory written justification required for all three decisions. The AI cannot approve, reject, or publish.
 
-8. **Tamper-Resistant Append-Only Audit Trail (`/audit`)**:
+8. **Append-Only Audit Trail (`/audit`)**:
    - Every system event (draft creation, agent tool executions, finding dispositions, comments, manager decisions) is written to `audit_log`.
-   - Protected in PostgreSQL by trigger `trg_audit_log_append_only` which throws an exception on any `UPDATE` or `DELETE` attempt.
-   - Searchable and filterable table by action, actor type (`user`, `ai_agent`, `system`), and date, with an interactive modal to inspect the raw JSON trace payload.
+   - Protected in PostgreSQL by trigger `trg_audit_log_append_only` which throws an exception on any `UPDATE` or `DELETE` attempt. In demo mode, logged chronologically to an in-memory audit store.
+   - Searchable and filterable table by action, actor type (`user`, `ai_agent`, `system`), and date, with an interactive modal to inspect the raw JSON trace payload. Wrapped in horizontal scroll containers (`min-w-[640px]`) for clean mobile responsiveness.
 
 9. **Brand Rulebook & Admin Source Management**:
    - Public reference viewer (`/rules`) displaying PayNest's active guidelines, facts, and glossary terms.
@@ -64,11 +67,12 @@ Every feature listed below is fully implemented, verified, and testable end-to-e
 
 10. **Benchmark Evaluation Suite**:
     - Automated benchmark runner (`scripts/run_testset.ts` / `npm run test:benchmark`) testing 12 drafts (6 flawed, 6 clean).
-    - Achieved **100.0% Precision, 100.0% Recall, and 100.0% F1 Score** (14/14 true positives, 0 false positives, 0 false negatives). Results saved to `seed/results.json`.
+    - Achieved **100.0% Precision, 100.0% Recall, and 100.0% F1 Score** specifically on the 12-draft PayNest benchmark test set (14/14 true positives, 0 false positives, 0 false negatives). Results saved to `seed/results.json`.
 
 11. **Public Demo Guide & AI Disclosure Pages**:
     - `/demo-guide`: Public walkthrough explaining app purpose, demo credentials, 8-step journey, and 3 copy-paste test drafts.
     - `/about-ai`: Transparent disclosure of Gemini models used, data privacy policies, and the "Humans Decide" governance boundary.
+    - `/showcase`: Fluid, interactive product showcase with 6-layer parallax, SVG circuit trajectory, and campaign reel powered by a tuned Lenis scroll loop (`lerp: 0.14`) with instantaneous direction reversal.
 
 ---
 
@@ -94,6 +98,7 @@ To maintain complete transparency with hackathon evaluators, the following featu
 - **Next.js 15 (App Router)** running on Node.js with TypeScript 5.7.
 - **Server Actions** handle state mutations (draft submission, finding updates, managerial verdicts) with automatic path revalidation (`revalidatePath`).
 - **Tailwind CSS + shadcn/ui tokens**: Designed around a clean, professional fintech theme (slate neutrals, indigo primary, Inter typography, 8px spatial grid, WCAG AA contrast).
+- **Date Formatting**: Explicit UTC getters (`getUTCDate`, `getUTCHours`, etc.) ensure deterministic server and client rendering, eliminating hydration mismatch warnings.
 
 ### Retrieval-Augmented Generation (RAG) Approach
 - **Say plainly**: Retrieval in BrandSure is **HYBRID**.
@@ -114,8 +119,8 @@ To maintain complete transparency with hackathon evaluators, the following featu
 
 1. **Introduction of the Dual-Mode Engine**:
    - *Round 1 Plan*: Assumed live cloud Supabase connectivity for all evaluators.
-   - *Change*: Built a complete, zero-config in-memory/cookie demo store that activates whenever cloud database credentials are absent in local development.
-   - *Why*: In live hackathon evaluations, external database connection latencies, firewall restrictions, or missing credentials can disrupt a demo. The dual-mode engine ensures any evaluator can clone the repo and test the app with full offline capabilities.
+   - *Change*: Built an explicit data store separation: live Supabase strictly required in production with a `DatabaseNotConfigured` gate; in local development, `DEMO_MODE=true` activates a zero-config in-memory store with HMAC-signed session cookies.
+   - *Why*: In live hackathon evaluations, external database connection latencies, firewall restrictions, or missing credentials can disrupt a demo. The dual-mode engine ensures any evaluator can clone the repo and test the app with full offline capabilities without compromising production integrity.
 2. **Deterministic Fallback for Reliable Benchmark Availability**:
    - *Round 1 Plan*: Relied entirely on external LLM calls for claim evaluation.
    - *Change*: Implemented a deterministic regex and rule matching layer that works in tandem with Gemini 2.5 Flash.
@@ -136,7 +141,7 @@ In Round 3, BrandSure will introduce a multimodal inspection pipeline powered by
 While Round 2 stores comprehensive finding dispositions, Round 3 will surface a rich analytical dashboard for brand compliance officers. The system will aggregate historical creator dismissals and managerial edits to automatically flag ambiguous, outdated, or frequently-contested guidelines (e.g., identifying that 40% of creators dismiss a specific superlative rule because it contradicts recent product feature updates). This transforms BrandSure from a reactive copy-checker into a proactive brand-intelligence platform that continuously improves the rulebook.
 
 ### 3. Scaled Benchmark Evaluation on a 200+ Production Corpus
-In Round 2, the benchmark runner verified 12 canonical test drafts achieving 100% F1 score on the 12-draft PayNest benchmark test set (14/14 True Positives, 0 False Positives, 0 False Negatives as recorded in `seed/results.json`). For Round 3, we will expand this benchmark suite to 200+ multi-channel drafts sourced from real-world fintech campaigns, covering edge-case comparative advertising, multilingual vernacular copy (Hindi, Tamil, Telugu), and complex multi-claim marketing paragraphs. We will measure latency percentiles ($p50, p95, p99$) and RRF retrieval accuracy across large knowledge bases exceeding 5,000 guideline chunks.
+In Round 2, the benchmark runner verified 12 canonical test drafts achieving 100% F1 score specifically on the 12-draft PayNest benchmark test set (14/14 True Positives, 0 False Positives, 0 False Negatives as recorded in `seed/results.json`). For Round 3, we will expand this benchmark suite to 200+ multi-channel drafts sourced from real-world fintech campaigns, covering edge-case comparative advertising, multilingual vernacular copy (Hindi, Tamil, Telugu), and complex multi-claim marketing paragraphs. We will measure latency percentiles ($p50, p95, p99$) and RRF retrieval accuracy across large knowledge bases exceeding 5,000 guideline chunks.
 
 ---
 
@@ -181,3 +186,20 @@ Evaluators can complete the entire core journey in under 3 minutes:
 ### Development Attributions
 - Scaffolding, architecture design, and benchmark test automation were developed in pair programming with **Google Antigravity**, an agentic AI coding assistant.
 - All compliance logic, regulatory rule mappings (SEBI/ASCI/RBI), database constraints, and anti-hallucination bounds were reviewed, verified, and audited by human engineers.
+
+---
+
+## 8. Claims and Verification Evidence Table
+
+To uphold the highest standards of scientific and engineering honesty, every major claim made in our submission, README, and demo guide is cross-referenced against reproducible raw evidence:
+
+| # | System Claim | Where Stated | Ground Truth & Real Implementation | Verification Evidence File |
+|---|---|---|---|---|
+| 1 | **Data Store Truth** | §1.1, README §4, `/about-ai` | Production strictly requires live Supabase credentials; halts with `DatabaseNotConfigured` gate if missing. Demo mode operates exclusively in development when `DEMO_MODE=true`. | `src/lib/data-store.ts`, `docs/qa-evidence/phase-1/01_production_no_env.log` |
+| 2 | **Cryptographic Session Signing** | §1.2, README §4 | Web Crypto HMAC-SHA256 signatures with constant-time comparison prevent role tampering. Unsigned/modified cookies rejected with 401. | `src/lib/session.ts`, `tests/tamper.test.ts`, `docs/qa-evidence/phase-2/01_tamper_results.log` |
+| 3 | **Creator Draft Isolation** | §1.2, §3 | Edge middleware and server actions enforce `creator_id === user.id`. Cross-creator access attempts are rejected with HTTP 403 Forbidden. | `src/middleware.ts`, `tests/tamper.test.ts`, `docs/qa-evidence/phase-8/01_e2e_results.log` |
+| 4 | **Append-Only Audit Log** | §1.8, README §2, `/demo-guide` | In PostgreSQL production, trigger `trg_audit_log_append_only` rejects all `UPDATE` and `DELETE` queries with an exception. In development demo mode, logged chronologically to in-memory store. | `supabase/migrations/20261105000000_init_brandsure.sql`, `tests/audit-tamper.test.ts`, `docs/qa-evidence/phase-3/01_audit_tamper_results.log` |
+| 5 | **Console & Layout Cleanliness** | §3, README §3 | Root-cause UTC formatting eliminates timezone hydration mismatches. Tables feature horizontal scroll wrappers (`min-w-[640px]`) for 390px mobile responsiveness. Favicon and SVG icons return HTTP 200. | `src/lib/utils.ts`, `src/app/icon.svg`, `public/favicon.ico`, `docs/qa-evidence/phase-4/` |
+| 6 | **Benchmark Accuracy** | §1.10, §5.3, README §8 | Evaluated on 12-draft PayNest benchmark test set (6 flawed, 6 clean): 14/14 True Positives, 0 False Positives, 0 False Negatives (100.0% Precision, 100.0% Recall, 100.0% F1). | `seed/results.json`, `docs/qa-evidence/phase-8/04_benchmark.log` |
+| 7 | **Showcase Scroll Feel** | §1.11, `/showcase` | Tuned Lenis configuration (`lerp: 0.14`, `wheelMultiplier: 1.0`, `touchMultiplier: 1.5`) with zero CSS transitions on scroll loop, eliminating the 100ms direction reversal stall. | `src/components/showcase/scroll.ts`, `docs/qa-evidence/phase-6/` |
+| 8 | **Empirical Production Latency** | §6, README §9 | 17/17 automated end-to-end checks verified against live production build with an average HTTP latency of 5ms (zero invented or estimated figures). | `scripts/e2e_verification.mjs`, `docs/qa-evidence/phase-8/01_e2e_results.log`, `docs/qa-evidence/phase-8/results.md` |

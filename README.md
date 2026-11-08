@@ -119,18 +119,26 @@ cp .env.example .env.local
 
 Edit `.env.local` with your credentials:
 ```env
-# Supabase Configuration (Optional for Demo Mode)
+# Data Store Mode (set to true for local development demo mode)
+DEMO_MODE=true
+
+# Session Signing Secret (required for HMAC-SHA256 session cookies)
+SESSION_SECRET=your-32-character-secret-key-for-sessions
+
+# Supabase Configuration (Strictly required in production; optional when DEMO_MODE=true)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
-# Google Gemini API
+# Google Gemini API (Optional: falls back to deterministic rule engine if absent)
 GEMINI_API_KEY=your-google-gemini-api-key
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_EMBEDDING_MODEL=text-embedding-004
 ```
 
-> **Note**: Even if you do not have Supabase credentials configured, BrandSure will smoothly launch in **Instant Zero-Config Demo Mode** with the complete PayNest dataset!
+> **Data Store Modes**:
+> - **Local Development**: Setting `DEMO_MODE=true` activates the zero-config demo store with pre-loaded PayNest guidelines, sample drafts, audit trail, and cryptographically signed HMAC session cookies.
+> - **Production Deployment**: A live Supabase PostgreSQL database with `pgvector` and append-only database triggers is strictly required. If credentials are missing in production, the application refuses to run and displays a `DatabaseNotConfigured` refusal gate. For deployment instructions, see [`docs/deployment_guide.md`](file:///Users/mokshith/Projects/demo/docs/deployment_guide.md).
 
 ### Step 4: Run the Development Server
 ```bash
@@ -144,9 +152,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Variable | Required | Description |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Optional (Demo fallback) | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional (Demo fallback) | Public Supabase client key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Optional (Server-side only) | Privileged Supabase key for administrative migrations/seeding |
+| `DEMO_MODE` | Optional (`true` in dev) | Activates in-memory demo store and sample PayNest dataset |
+| `SESSION_SECRET` | Required | Secret key for Web Crypto HMAC-SHA256 session cookie signing |
+| `NEXT_PUBLIC_SUPABASE_URL` | Required in Production | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Required in Production | Public Supabase client key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Required in Production | Privileged Supabase key for administrative migrations/seeding |
 | `GEMINI_API_KEY` | Optional (Fallback to rules) | Google Gemini API key for claim evaluation |
 | `GEMINI_MODEL` | Optional (Default: `gemini-2.5-flash`) | Gemini model identifier for compliance reasoning |
 | `GEMINI_EMBEDDING_MODEL` | Optional (Default: `text-embedding-004`)| Gemini model identifier for generating vector embeddings |

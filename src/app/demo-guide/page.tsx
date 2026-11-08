@@ -30,6 +30,22 @@ export default function DemoGuidePage() {
           </Link>
         </div>
 
+        {/* Architecture & Security Notice */}
+        <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <span className="font-bold text-indigo-900 uppercase tracking-wide text-[10px] bg-indigo-100/80 px-2 py-0.5 rounded">Data Store &amp; Security Architecture</span>
+            <p className="text-slate-700 leading-relaxed">
+              Production operates strictly against <strong>Supabase PostgreSQL</strong> with <code className="font-mono bg-white/80 px-1 py-0.5 rounded">pgvector</code> and append-only trigger <code className="font-mono bg-white/80 px-1 py-0.5 rounded">trg_audit_log_append_only</code>. For local evaluator testing, setting <code className="font-mono bg-white/80 px-1 py-0.5 rounded">DEMO_MODE=true</code> enables the pre-loaded in-memory store with cryptographically signed HMAC-SHA256 session cookies.
+            </p>
+          </div>
+          <Link
+            href="/about-ai"
+            className="flex-shrink-0 text-indigo-700 hover:text-indigo-800 font-semibold underline text-xs"
+          >
+            View AI &amp; Security Disclosure &rarr;
+          </Link>
+        </div>
+
         {/* 1. Four Demo Accounts */}
         <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
