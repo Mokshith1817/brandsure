@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { getCurrentSession } from '@/lib/auth';
-import { getDemoDrafts, isSupabaseConfigured } from '@/lib/demo-data';
+import { getDemoDrafts, isSupabaseConfigured, hydrateDemoDraftFromCookie } from '@/lib/demo-data';
 import { DatabaseNotConfigured } from '@/components/ui/DatabaseNotConfigured';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SeverityBadge } from '@/components/ui/SeverityBadge';
@@ -51,6 +51,24 @@ export default async function DraftsListPage() {
   let drafts: any[] = [];
 
   if (isDemoMode) {
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const idsRaw = cookieStore.get('bs_user_draft_ids')?.value;
+      if (idsRaw) {
+        const ids: string[] = JSON.parse(idsRaw);
+        for (const draftId of ids) {
+          const rawDraft = cookieStore.get(`bs_draft_${draftId}`)?.value;
+          if (rawDraft) {
+            const parsed = JSON.parse(rawDraft);
+            if (parsed) {
+              hydrateDemoDraftFromCookie(parsed);
+            }
+          }
+        }
+      }
+    } catch {}
+
     const allDrafts = getDemoDrafts();
     drafts = profile.role === 'creator'
       ? allDrafts.filter((d) => d.creator_id === user.id)

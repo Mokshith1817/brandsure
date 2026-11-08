@@ -165,7 +165,15 @@ export async function middleware(request: NextRequest) {
     const draftId = pathname.replace('/drafts/', '').split('/')[0];
     if (draftId && draftId !== 'new') {
       if (isDemoModeAllowed()) {
-        const demoDraftObj = getDemoDraftById(draftId);
+        let demoDraftObj = getDemoDraftById(draftId);
+        if (!demoDraftObj) {
+          const rawCookie = request.cookies.get(`bs_draft_${draftId}`)?.value;
+          if (rawCookie) {
+            try {
+              demoDraftObj = JSON.parse(rawCookie);
+            } catch {}
+          }
+        }
         if (demoDraftObj && user && demoDraftObj.draft.creator_id !== user.id) {
           if (!isHtmlRequest) {
             return NextResponse.json(

@@ -1,5 +1,6 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { getCurrentSession } from '@/lib/auth';
 import { runReviewAgent } from '@/lib/agent';
 import { createClient } from '@/lib/supabase/server';
@@ -13,6 +14,7 @@ import {
   addDemoAuditLog,
   getDemoOpenHighFindingsCount,
   getDemoDraftById,
+  hydrateDemoDraftFromCookie,
 } from '@/lib/demo-data';
 import type { Channel, FindingStatus, DraftStatus } from '@/types/database';
 import { revalidatePath } from 'next/cache';
@@ -142,6 +144,41 @@ export async function createDraft(formData: { channel: Channel; text: string }) 
     creatorName: profile.full_name,
     findings: agentResult.findings,
   });
+
+  // Persist created draft into cookie so Vercel serverless lambdas can reliably load it
+  try {
+    const cookieStore = await cookies();
+    const draftPayload = {
+      draft: demoResult.draft,
+      version: demoResult.version,
+      findings: demoResult.findings,
+    };
+    cookieStore.set(`bs_draft_${demoResult.draftId}`, JSON.stringify(draftPayload), {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    const existingIdsRaw = cookieStore.get('bs_user_draft_ids')?.value;
+    let draftIds: string[] = [];
+    if (existingIdsRaw) {
+      try { draftIds = JSON.parse(existingIdsRaw); } catch {}
+    }
+    if (!draftIds.includes(demoResult.draftId)) {
+      draftIds.unshift(demoResult.draftId);
+    }
+    cookieStore.set('bs_user_draft_ids', JSON.stringify(draftIds.slice(0, 10)), {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  } catch (err) {
+    console.warn('[Demo Draft Cookie Warning]:', err);
+  }
 
   addDemoAuditLog({
     action: 'draft_created',

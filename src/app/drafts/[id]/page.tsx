@@ -47,7 +47,17 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
   let allVersions: DraftVersion[] = [];
 
   if (isDemoMode) {
-    const demoDraftObj = getDemoDraftById(id);
+    let cookieDraftObj = null;
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      const raw = cookieStore.get(`bs_draft_${id}`)?.value;
+      if (raw) {
+        cookieDraftObj = JSON.parse(raw);
+      }
+    } catch {}
+
+    const demoDraftObj = getDemoDraftById(id, cookieDraftObj);
     if (demoDraftObj) {
       draft = demoDraftObj.draft;
       version = demoDraftObj.version || null;
@@ -56,6 +66,9 @@ export default async function DraftDetailPage({ params }: DraftPageProps) {
     comments = getDemoComments(id);
     decisions = getDemoDecisions(id);
     allVersions = getDemoDraftVersions(id);
+    if (allVersions.length === 0 && version) {
+      allVersions = [version];
+    }
   } else {
     // Live Supabase query
     try {

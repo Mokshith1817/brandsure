@@ -352,7 +352,37 @@ export function getDemoDrafts(): (Draft & { finding_counts?: { high: number; med
   });
 }
 
-export function getDemoDraftById(draftId: string) {
+export function hydrateDemoDraftFromCookie(cookieDraftObj: {
+  draft: Draft;
+  version?: DraftVersion | null;
+  findings?: Finding[];
+}) {
+  if (!cookieDraftObj?.draft) return null;
+  const draftId = cookieDraftObj.draft.id;
+  if (!inMemoryDrafts.some((d) => d.id === draftId)) {
+    inMemoryDrafts.unshift(cookieDraftObj.draft);
+  }
+  if (cookieDraftObj.version && !inMemoryDraftVersions.some((v) => v.id === cookieDraftObj.version!.id)) {
+    inMemoryDraftVersions.unshift(cookieDraftObj.version);
+  }
+  if (cookieDraftObj.findings && cookieDraftObj.findings.length > 0) {
+    for (const f of cookieDraftObj.findings) {
+      if (!inMemoryFindings.some((existing) => existing.id === f.id)) {
+        inMemoryFindings.unshift(f);
+      }
+    }
+  }
+  return cookieDraftObj;
+}
+
+export function getDemoDraftById(
+  draftId: string,
+  cookieDraftObj?: { draft: Draft; version?: DraftVersion | null; findings?: Finding[] } | null
+) {
+  if (cookieDraftObj?.draft && cookieDraftObj.draft.id === draftId) {
+    hydrateDemoDraftFromCookie(cookieDraftObj);
+  }
+
   const draft = inMemoryDrafts.find((d) => d.id === draftId);
   if (!draft) return null;
 
@@ -435,7 +465,13 @@ export function createDemoDraft(params: {
   inMemoryDraftVersions.unshift(newVersion);
   inMemoryFindings.unshift(...newFindings);
 
-  return { draftId, versionId, findings: newFindings };
+  return {
+    draftId,
+    versionId,
+    draft: newDraft,
+    version: newVersion,
+    findings: newFindings,
+  };
 }
 
 export function updateDemoFindingStatus(
