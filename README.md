@@ -1,7 +1,8 @@
 # BrandSure — Pre-Publication Brand Governance for Fintech
 
 > **A bounded, citation-backed AI compliance checkpoint for marketing content before it reaches customers.**  
-> *Built for **CodeNexus India 2026** (Round 2: Functional Product). Demonstrated with **PayNest**, a fictional UPI payments and investing app.*
+> *Built for **CodeNexus India 2026** (Round 2: Functional Product). Demonstrated with **PayNest**, a fictional UPI payments and investing app.*  
+> **Live Deployed URL**: [https://demo-rho-nine-62.vercel.app](https://demo-rho-nine-62.vercel.app)
 
 [![Next.js 15](https://img.shields.io/badge/Next.js-15%20App%20Router-black.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)]()

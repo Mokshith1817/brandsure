@@ -5,7 +5,7 @@
 **Demonstration Brand**: PayNest (fictional UPI payments and investing app)  
 **Date**: 8 November 2026  
 **Repository**: [https://github.com/Mokshith1817/demo](https://github.com/Mokshith1817/demo)  
-**Live Application**: [http://localhost:3000](http://localhost:3000) (or deployed Vercel URL per deployment guide)
+**Live Application**: [https://demo-rho-nine-62.vercel.app](https://demo-rho-nine-62.vercel.app) (also accessible locally at `http://localhost:3000`)
 
 ---
 
