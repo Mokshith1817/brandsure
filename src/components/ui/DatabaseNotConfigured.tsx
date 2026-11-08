@@ -47,14 +47,14 @@ export function DatabaseNotConfigured({ pageName = 'This feature' }: DatabaseNot
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors shadow-sm"
           >
             <ShieldAlert className="w-4 h-4" />
-            <span>Open Demo Guide</span>
+            <span>How BrandSure works</span>
           </Link>
           <Link
-            href="/showcase"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-700/60 hover:bg-slate-700 text-slate-200 text-sm font-medium transition-colors border border-slate-600"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Showcase</span>
+            <span>Back to Sign in</span>
           </Link>
         </div>
       </div>

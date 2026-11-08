@@ -184,7 +184,7 @@ export const PROJECTS: Project[] = [
     slug: "veritas-db",
     title: "VERITAS STORE",
     kicker: "DATABASE SYSTEMS — EXPERIMENTAL",
-    category: "Immutable Storage",
+    category: "Append-Only Storage",
     timeline: "NOV 2024 — FEB 2025",
     status: "shipped",
     stack: ["Zig", "LSM-Tree", "io_uring", "Raft", "Python"],

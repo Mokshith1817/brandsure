@@ -38,7 +38,7 @@ export function Sidebar({ role }: SidebarProps) {
           { label: 'My Drafts', href: '/drafts', icon: FileText },
           { label: 'New Draft', href: '/drafts/new', icon: PlusCircle },
           { label: 'Rulebook & Facts', href: '/rules', icon: BookOpen },
-          { label: 'Judge Demo Guide', href: '/demo-guide', icon: Compass },
+          { label: 'How BrandSure works', href: '/demo-guide', icon: Compass },
           { label: 'About AI Governance', href: '/about-ai', icon: Info },
         ];
       case 'reviewer':
@@ -46,7 +46,7 @@ export function Sidebar({ role }: SidebarProps) {
           { label: 'Review Queue', href: '/reviews', icon: CheckSquare },
           { label: 'All Drafts', href: '/drafts', icon: FileText },
           { label: 'Rulebook & Facts', href: '/rules', icon: BookOpen },
-          { label: 'Judge Demo Guide', href: '/demo-guide', icon: Compass },
+          { label: 'How BrandSure works', href: '/demo-guide', icon: Compass },
           { label: 'About AI Governance', href: '/about-ai', icon: Info },
         ];
       case 'manager':
@@ -55,7 +55,7 @@ export function Sidebar({ role }: SidebarProps) {
           { label: 'All Drafts', href: '/drafts', icon: FileText },
           { label: 'Audit Log', href: '/audit', icon: ClipboardList },
           { label: 'Rulebook & Facts', href: '/rules', icon: BookOpen },
-          { label: 'Judge Demo Guide', href: '/demo-guide', icon: Compass },
+          { label: 'How BrandSure works', href: '/demo-guide', icon: Compass },
           { label: 'About AI Governance', href: '/about-ai', icon: Info },
         ];
       case 'admin':
@@ -65,7 +65,7 @@ export function Sidebar({ role }: SidebarProps) {
           { label: 'Glossary', href: '/admin/glossary', icon: Type },
           { label: 'Audit Log', href: '/audit', icon: ClipboardList },
           { label: 'All Drafts', href: '/drafts', icon: Layers },
-          { label: 'Judge Demo Guide', href: '/demo-guide', icon: Compass },
+          { label: 'How BrandSure works', href: '/demo-guide', icon: Compass },
           { label: 'About AI Governance', href: '/about-ai', icon: Info },
         ];
       default:

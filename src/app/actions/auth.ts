@@ -73,7 +73,7 @@ export async function signInAction(emailInput: string, passwordInput?: string) {
   // 2. Demo Mode Login (Local development only when DEMO_MODE=true)
   if (isDemoModeAllowed()) {
     const demoProfile = DEMO_PROFILES[trimmedEmail];
-    if (!demoProfile && password !== 'PayNest2026!') {
+    if (!demoProfile && !password) {
       return { error: 'Invalid email or password.' };
     }
 

@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)]()
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20pgvector-emerald.svg)]()
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-indigo.svg)]()
-[![Benchmark](https://img.shields.io/badge/Benchmark-100%25%20F1%20(12--draft%20test%20set)-success.svg)]()
+[![Benchmark](https://img.shields.io/badge/Benchmark-12--Draft%20Sanity%20Check-blue.svg)]()
 
 ---
 
@@ -19,7 +19,7 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
 - **Strictly Bounded AI**: The AI only reads, flags, and suggests against *approved* internal rulebooks, fact bases, and glossaries. It **never invents rules or facts**. If an ungrounded claim is found, it explicitly declares *"No approved source found"*.
 - **Humans Decide**: The AI cannot approve, reject, publish, or overwrite text. Final editorial and compliance actions remain strictly in human hands (Creators, Reviewers, Managers).
 - **Verifiable Citations**: Every finding includes the exact rule or fact cited, a plain-language explanation of why it was flagged, and an intent-preserving rewrite visibly labelled *"AI-generated suggestion"*.
-- **Append-Only Audit Log**: Every tool execution, creator disposition (accept/edit/dismiss), and manager verdict is recorded in an append-only database table protected by PostgreSQL triggers in production; in-memory log in demo mode.
+- **Append-Only Audit Log**: Every tool execution, creator disposition (accept/edit/dismiss), and manager verdict is recorded in an append-only database table protected by PostgreSQL triggers in production (`trg_audit_log_append_only`).
 
 ---
 
@@ -59,7 +59,7 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
 
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Framework** | Next.js 15 (App Router) + React 19 | Server Actions, Server Components, streaming UI, and route handlers |
+| **Framework** | Next.js 15 (App Router) + React 19 | Server Actions, Server Components, and Edge middleware |
 | **Language** | TypeScript 5.7 | Strict end-to-end type safety |
 | **Styling & UI** | Tailwind CSS + shadcn/ui tokens | Clean fintech design system (8px grid, Inter font, WCAG AA contrast) |
 | **Icons & Feedback** | Lucide React + Sonner | Accessible icons paired with text labels; non-blocking toasts |
@@ -75,9 +75,9 @@ In regulated fintech marketing, publishing an inaccurate metric, unsubstantiated
 ## 4. Architecture Summary
 
 ### Data Store Architecture
-BrandSure is built with explicit data store separation:
+BrandSure enforces clean data store separation:
 1. **Cloud Supabase Mode (Production)**: Connects to Supabase Postgres, executes pgvector cosine distance queries, and enforces Row-Level Security policies and append-only database triggers. Production strictly requires live Supabase credentials and halts with a clear `DatabaseNotConfigured` gate if missing.
-2. **Demo Mode (Local Development)**: Permitted exclusively in development environments when `DEMO_MODE=true` is set. Uses an in-memory store and cryptographically signed session cookies pre-loaded with PayNest's rulebook, sample drafts, and audit events, ensuring seamless evaluator testing without setup friction.
+2. **Demo Mode (Local Development Only)**: Permitted exclusively in development environments when `DEMO_MODE=true` is set. Uses an in-memory store and cryptographically signed session cookies pre-loaded with PayNest's rulebook, sample drafts, and audit events, ensuring seamless developer evaluation without external setup friction.
 
 ### Bounded Retrieval & Reciprocal Rank Fusion (RRF)
 Guideline retrieval combines two complementary search methods:
@@ -86,11 +86,11 @@ Guideline retrieval combines two complementary search methods:
 - **RRF Merge**: Normalizes rankings using standard reciprocal rank fusion (`1 / (60 + rank)`) to return the top 3 highest-confidence rule snippets.
 - **Confidence Gate**: Snippets below the minimum threshold are discarded, returning *"No approved source found"*.
 
-### Four Role-Based Personas
-- **Creator (`creator@paynest.demo`)**: Authors drafts, reviews AI findings, applies fixes, dismisses with reason, and submits for review.
-- **Reviewer (`reviewer@paynest.demo`)**: Views review queue, inspects multi-version diffs, and contributes editorial comments.
-- **Manager (`manager@paynest.demo`)**: Makes final governance decisions (Approve, Request Changes, Reject) with mandatory written justification.
-- **Admin (`admin@paynest.demo`)**: Curates guidelines, updates facts, manages glossary, triggers vector re-indexing, and reviews audit logs.
+### Four Role-Based Governance Roles
+- **Creator**: Authors drafts, reviews AI findings, applies fixes, dismisses with reason, and submits for review.
+- **Reviewer**: Views review queue, inspects multi-version diffs, and contributes editorial comments.
+- **Manager**: Makes final governance decisions (Approve, Request Changes, Reject) with mandatory written justification.
+- **Admin**: Curates guidelines, updates facts, manages glossary, triggers vector re-indexing, and reviews audit logs.
 
 ---
 
@@ -169,19 +169,21 @@ To initialize or reset the database schema and load canonical PayNest rules, fac
 ```bash
 npm run seed
 ```
-This script reads `seed/rulebook.json`, generates 768-dimensional vector embeddings for each guideline chunk, and writes rows into `organisations`, `profiles`, `facts`, `guidelines`, `guideline_chunks`, `glossary`, and initial audit logs.
+This script reads `seed/rulebook.json`, generates 768-dimensional vector embeddings for each guideline chunk, provisions judge user accounts configured via environment variables, and writes rows into `organisations`, `profiles`, `facts`, `guidelines`, `guideline_chunks`, `glossary`, and initial audit logs.
 
 ---
 
-## 8. How to Run the Benchmark Test Suite
+## 8. Benchmark Evaluation Suite
 
-BrandSure includes an automated evaluation runner that evaluates 12 benchmark drafts (6 flawed, 6 clean) against ground truth annotations:
+BrandSure includes an automated evaluation runner:
 ```bash
 npm run test:benchmark
 ```
 
-### Benchmark Results (`seed/results.json`)
-- **Total Drafts Evaluated**: 12
+> **Scope Note**: 12-draft sanity check on drafts written alongside the rulebook; not a general accuracy figure; larger test set planned.
+
+### Results on 12-Draft Benchmark (`seed/results.json`)
+- **Total Drafts Evaluated**: 12 (6 flawed, 6 clean)
 - **True Positives**: 14 / 14
 - **False Positives**: 0
 - **False Negatives**: 0
@@ -191,18 +193,11 @@ npm run test:benchmark
 
 ---
 
-## 9. Demo Credentials (Fictional Demo Brand: PayNest)
+## 9. How to Try BrandSure
 
-All demo accounts share the password: `<code className="font-mono">PayNest2026!</code>`
-
-| Role | Email | Password | Primary Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Creator** | `creator@paynest.demo` | `PayNest2026!` | Submits drafts, reviews findings, applies suggested fixes, submits for review |
-| **Reviewer** | `reviewer@paynest.demo` | `PayNest2026!` | Inspects review queue, views version diffs, adds team comments |
-| **Manager** | `manager@paynest.demo` | `PayNest2026!` | Approves/rejects drafts with mandatory reason, views audit trail |
-| **Admin** | `admin@paynest.demo` | `PayNest2026!` | Manages guidelines, facts, glossary, vector embeddings, and audit logs |
-
-> **Pro-Tip**: The login page (`/login`) includes a 1-click persona switcher that instantly signs you in with any role without manual typing!
+1. Open the deployed application link (or `http://localhost:3000`).
+2. Self sign-up is open at `/signup` to register a **Creator** account and test the full drafting, AI compliance review, and submission flow.
+3. Pre-configured test accounts for Reviewer, Manager, and Admin roles are provided in the submitted evaluation PDF.
 
 ---
 
