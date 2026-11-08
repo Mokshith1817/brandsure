@@ -4,7 +4,7 @@
 **Event**: CodeNexus India 2026, Round 2 (Functional Product)  
 **Demonstration Brand**: PayNest (fictional UPI payments and investing app)  
 **Date**: 8 November 2026  
-**Repository**: [https://github.com/Mokshith1817/demo](https://github.com/Mokshith1817/demo)  
+**Repository**: [https://github.com/Mokshith1817/brandsure](https://github.com/Mokshith1817/brandsure)  
 **Live Application**: [https://demo-rho-nine-62.vercel.app](https://demo-rho-nine-62.vercel.app) (also accessible locally at `http://localhost:3000`)
 
 ---
