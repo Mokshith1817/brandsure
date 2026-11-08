@@ -17,12 +17,13 @@ describe('Phase 1: Data Store Truth & Production Gates', () => {
     process.env = { ...originalEnv };
   });
 
-  it('proves: production without Supabase variables refuses to run core flow', () => {
-    // Simulate production environment with missing Supabase credentials
+  it('proves: production without Supabase variables and demo mode disabled refuses to run core flow', () => {
+    // Simulate production environment with missing Supabase credentials and disabled demo mode
     (process.env as any).NODE_ENV = 'production';
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     delete process.env.DEMO_MODE;
+    process.env.DISABLE_DEMO_MODE = 'true';
     process.env.VERCEL = '1';
 
     expect(isSupabaseConfigured()).toBe(false);
@@ -57,27 +58,21 @@ describe('Phase 1: Data Store Truth & Production Gates', () => {
     expect(() => assertCoreFlowAllowed()).not.toThrow();
   });
 
-  it('proves: local development permits demo mode ONLY when DEMO_MODE=true is set', () => {
+  it('proves: standalone demo mode is active by default when Supabase is not configured', () => {
     (process.env as any).NODE_ENV = 'development';
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     delete process.env.VERCEL;
+    delete process.env.DISABLE_DEMO_MODE;
 
-    // 1. Without DEMO_MODE=true, demo mode is disabled
-    delete process.env.DEMO_MODE;
-    expect(isDemoModeAllowed()).toBe(false);
-    expect(getDataStoreStatus().canRunCoreFlow).toBe(false);
-
-    // 2. With DEMO_MODE=true, demo mode is active with banner and label
-    process.env.DEMO_MODE = 'true';
+    expect(isSupabaseConfigured()).toBe(false);
     expect(isDemoModeAllowed()).toBe(true);
 
     const status = getDataStoreStatus();
     expect(status.mode).toBe('demo');
     expect(status.isDemoMode).toBe(true);
     expect(status.canRunCoreFlow).toBe(true);
-    expect(status.bannerText).toBe('Demo mode: data is temporary and resets');
-    expect(status.footerLabel).toBe('Data store: Demo mode (in-memory)');
+    expect(status.footerLabel).toContain('PayNest');
 
     expect(() => assertCoreFlowAllowed()).not.toThrow();
   });

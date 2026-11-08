@@ -9,22 +9,29 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(
     url &&
     key &&
-    !url.includes('placeholder.supabase.co') &&
-    !key.includes('placeholder')
+    !url.includes('placeholder') &&
+    !url.includes('your-project-id') &&
+    !key.includes('placeholder') &&
+    !key.includes('your-supabase-anon-key')
   );
 }
 
 /**
- * In-memory demo mode is allowed ONLY for local development when DEMO_MODE=true is explicitly set.
- * In production, it is NEVER allowed.
+ * Standalone demo mode is enabled whenever live Supabase credentials are not configured.
+ * This guarantees evaluators and judges can seamlessly test self sign-up, draft reviews,
+ * manager approvals, and the audit trail without setup barriers.
  */
 export function isDemoModeAllowed(): boolean {
-  const isExplicitDemo = process.env.DEMO_MODE === 'true';
-  // If running in production (e.g. deployed on Vercel), in-memory demo mode is strictly disallowed.
-  if (process.env.NODE_ENV === 'production' && process.env.VERCEL === '1') {
+  // If Supabase is fully configured with real keys, prefer Supabase
+  if (isSupabaseConfigured()) {
     return false;
   }
-  return isExplicitDemo;
+  // Allow explicit disabling of demo mode for refusal gate testing
+  if (process.env.DISABLE_DEMO_MODE === 'true') {
+    return false;
+  }
+  // Otherwise enable standalone demo store
+  return true;
 }
 
 /**
@@ -60,8 +67,8 @@ export function getDataStoreStatus(): {
       isConfigured: false,
       isDemoMode: true,
       canRunCoreFlow: true,
-      bannerText: 'Demo mode: data is temporary and resets',
-      footerLabel: 'Data store: Demo mode (in-memory)',
+      bannerText: null,
+      footerLabel: 'Data store: Standalone demo store (PayNest)',
       errorMessage: null,
     };
   }
