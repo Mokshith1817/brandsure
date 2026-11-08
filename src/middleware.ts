@@ -1,10 +1,24 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifySignedSessionCookie } from '@/lib/session';
-import { isDemoModeAllowed } from '@/lib/data-store';
-import { getDemoDraftById } from '@/lib/demo-data';
+import { isDemoModeAllowed, isSupabaseConfigured } from '@/lib/data-store';
+import { getDemoDraftById, DEMO_PROFILES } from '@/lib/demo-data';
 
 const DEMO_COOKIE_NAME = 'brandsure_demo_session';
+
+function getRedirectForRole(role: string | null): string {
+  switch (role) {
+    case 'admin':
+      return '/rules';
+    case 'manager':
+      return '/approvals';
+    case 'reviewer':
+      return '/reviews';
+    case 'creator':
+    default:
+      return '/drafts';
+  }
+}
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -14,39 +28,15 @@ export async function middleware(request: NextRequest) {
   });
 
   const pathname = request.nextUrl.pathname;
-
-  // 1. Check for Demo Cookie Session (strictly cryptographically verified)
   let user: { id: string; email: string } | null = null;
   let userRole: string | null = null;
 
-  if (isDemoModeAllowed()) {
-    const demoCookie = request.cookies.get(DEMO_COOKIE_NAME)?.value;
-    if (demoCookie) {
-      const verified = await verifySignedSessionCookie(demoCookie);
-      if (verified) {
-        const userId =
-          verified.userId ||
-          (verified.email === 'creator@paynest.demo'
-            ? 'demo-creator'
-            : verified.email === 'reviewer@paynest.demo'
-            ? 'demo-reviewer'
-            : verified.email === 'manager@paynest.demo'
-            ? 'demo-manager'
-            : verified.email === 'admin@paynest.demo'
-            ? 'demo-admin'
-            : `demo-${verified.email.split('@')[0]}`);
-        user = { id: userId, email: verified.email };
-        userRole = verified.role;
-      }
-    }
-  }
-
-  // 2. Check Supabase Auth if no verified demo cookie and Supabase credentials exist
+  // 1. Check Supabase Auth if configured (production default)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const isRealSupabase = supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder.supabase.co');
+  const isRealSupabase = isSupabaseConfigured() && supabaseUrl && supabaseKey;
 
-  if (!user && isRealSupabase) {
+  if (isRealSupabase) {
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
         get(name: string) {
@@ -76,35 +66,53 @@ export async function middleware(request: NextRequest) {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (authUser) {
       user = { id: authUser.id, email: authUser.email || '' };
+      // Read role ONLY from profiles table on the server
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', authUser.id)
         .single();
-      userRole = profile?.role || null;
+      userRole = profile?.role || 'creator';
     }
   }
 
-  // Public paths allowed without login
+  // 2. Demo Cookie Session (strictly in development when DEMO_MODE=true)
+  if (!user && isDemoModeAllowed()) {
+    const demoCookie = request.cookies.get(DEMO_COOKIE_NAME)?.value;
+    if (demoCookie) {
+      const verified = await verifySignedSessionCookie(demoCookie);
+      if (verified) {
+        user = { id: verified.userId, email: verified.email };
+        // Role is read strictly on the server from server ground truth, NEVER from cookie
+        const demoProfile = DEMO_PROFILES[verified.email];
+        userRole = demoProfile ? demoProfile.role : 'creator';
+      }
+    }
+  }
+
+  // Public paths allowed without authentication
   const isPublicPath =
     pathname === '/login' ||
+    pathname === '/signup' ||
     pathname.startsWith('/showcase') ||
     pathname.startsWith('/about-ai') ||
     pathname.startsWith('/demo-guide') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
-    pathname === '/favicon.ico';
+    pathname === '/favicon.ico' ||
+    pathname === '/icon.svg';
 
   if (isPublicPath) {
-    if (user && pathname === '/login') {
-      return NextResponse.redirect(new URL('/', request.url));
+    // If logged in and visiting auth pages, redirect to role dashboard
+    if (user && (pathname === '/login' || pathname === '/signup')) {
+      return NextResponse.redirect(new URL(getRedirectForRole(userRole), request.url));
     }
     return response;
   }
 
   const isHtmlRequest = request.headers.get('accept')?.includes('text/html') ?? false;
 
-  // Protected paths: If not logged in, reject with 401 for API/curl or redirect for browser
+  // Protected paths: If not logged in, deny with 401 or redirect to /login
   if (!user) {
     if (!isHtmlRequest) {
       return NextResponse.json({ error: 'Unauthorized: Authentication required.' }, { status: 401 });

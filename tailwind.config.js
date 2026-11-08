@@ -44,7 +44,7 @@ module.exports = {
           "SFMono-Regular",
           "monospace",
         ],
-        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "var(--font-body)", "Inter", "system-ui", "-apple-system", "sans-serif"],
       },
     },
   },

@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from './supabase/server';
-import { DEMO_PROFILES, DEMO_ORG, isSupabaseConfigured, isDemoModeAllowed } from './demo-data';
+import { DEMO_PROFILES, DEMO_ORG } from './demo-data';
+import { isSupabaseConfigured, isDemoModeAllowed } from './data-store';
 import { verifySignedSessionCookie } from './session';
 import type { Role, Profile } from '@/types/database';
 
@@ -15,17 +16,23 @@ export interface UserSession {
 
 export const DEMO_COOKIE_NAME = 'brandsure_demo_session';
 
+/**
+ * Gets the current authenticated session.
+ * Roles are read ONLY from the server-side database (profiles table in Supabase,
+ * or server-side demo profile mapping in development demo mode).
+ * Roles are NEVER read from cookies or client request payloads.
+ */
 export async function getCurrentSession(): Promise<UserSession> {
-  const cookieStore = await cookies();
   const configured = isSupabaseConfigured();
 
-  // 1. Try real Supabase auth if configured
+  // 1. Real Supabase Auth (mandatory in production)
   if (configured) {
     try {
       const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      if (user) {
+      if (user && !userError) {
+        // Read role ONLY from profiles table on the server
         const { data: profile } = await supabase
           .from('profiles')
           .select('*, organisations(name)')
@@ -45,34 +52,28 @@ export async function getCurrentSession(): Promise<UserSession> {
     }
   }
 
-  // 2. Demo Cookie session (strictly cryptographically signed and verified)
+  // 2. Demo Cookie session (strictly in development when DEMO_MODE=true)
   if (isDemoModeAllowed()) {
+    const cookieStore = await cookies();
     const rawToken = cookieStore.get(DEMO_COOKIE_NAME)?.value;
     if (rawToken) {
       const verified = await verifySignedSessionCookie(rawToken);
       if (verified) {
-        const userId =
-          verified.userId ||
-          (verified.email === 'creator@paynest.demo'
-            ? 'demo-creator'
-            : verified.email === 'reviewer@paynest.demo'
-            ? 'demo-reviewer'
-            : verified.email === 'manager@paynest.demo'
-            ? 'demo-manager'
-            : verified.email === 'admin@paynest.demo'
-            ? 'demo-admin'
-            : `demo-${verified.email.split('@')[0]}`);
+        // Read role ONLY on the server from server ground truth, NEVER from cookie
+        const demoProfile = DEMO_PROFILES[verified.email];
+        const role: Role = demoProfile ? demoProfile.role : 'creator';
+        const fullName = demoProfile ? demoProfile.full_name : verified.full_name || verified.email.split('@')[0];
 
         return {
           user: {
-            id: userId,
+            id: verified.userId,
             email: verified.email,
           },
           profile: {
-            id: userId,
+            id: verified.userId,
             org_id: verified.org_id,
-            full_name: verified.full_name,
-            role: verified.role,
+            full_name: fullName,
+            role,
             created_at: new Date().toISOString(),
             organisations: { name: DEMO_ORG.name },
           },

@@ -1,22 +1,17 @@
-import type { Role } from '@/types/database';
-
-export interface DemoSessionPayload {
-  email: string;
-  role: Role;
-  full_name: string;
-  org_id: string;
-  iat: number;
-  exp: number;
-  userId?: string;
-}
-
 // Server-side secret for HMAC signing. In production, provide SESSION_SECRET.
 // In local/demo mode, a persistent fallback key is used.
 const SESSION_SECRET =
   process.env.SESSION_SECRET ||
   'brandsure-secure-session-signing-secret-key-2026-paynest-governance';
 
-const VALID_ROLES = new Set<Role>(['creator', 'reviewer', 'manager', 'admin']);
+export interface DemoSessionPayload {
+  userId: string;
+  email: string;
+  full_name: string;
+  org_id: string;
+  iat: number;
+  exp: number;
+}
 
 /**
  * Base64url encode a buffer or Uint8Array
@@ -60,29 +55,44 @@ async function getHmacKey(): Promise<CryptoKey> {
 
 /**
  * Creates a cryptographically signed session token.
+ * Note: The token NEVER carries a role. Roles are resolved strictly on the server from the database.
  * Format: `${base64urlPayload}.${signature}`
  */
 export async function createSignedSessionCookie(
-  payload: Partial<DemoSessionPayload> & {
+  payload: {
+    userId?: string;
     email: string;
-    role: Role;
     full_name: string;
     org_id: string;
     expiresInMs?: number;
+    iat?: number;
+    exp?: number;
+    role?: any; // Ignored: roles must never be stored in cookies
   }
 ): Promise<string> {
   const now = payload.iat ?? Date.now();
   const expiresInMs = payload.expiresInMs ?? 7 * 24 * 60 * 60 * 1000; // 7 days default
   const exp = payload.exp ?? (now + expiresInMs);
 
+  const derivedUserId =
+    payload.userId ||
+    (payload.email === 'creator@paynest.demo'
+      ? 'demo-creator'
+      : payload.email === 'reviewer@paynest.demo'
+      ? 'demo-reviewer'
+      : payload.email === 'manager@paynest.demo'
+      ? 'demo-manager'
+      : payload.email === 'admin@paynest.demo'
+      ? 'demo-admin'
+      : `demo-${payload.email.split('@')[0]}`);
+
   const fullPayload: DemoSessionPayload = {
-    email: payload.email,
-    role: payload.role,
+    userId: derivedUserId,
+    email: payload.email.trim().toLowerCase(),
     full_name: payload.full_name,
     org_id: payload.org_id,
     iat: now,
     exp,
-    ...(payload.userId ? { userId: payload.userId } : {}),
   };
 
   const enc = new TextEncoder();
@@ -150,13 +160,8 @@ export async function verifySignedSessionCookie(
       return null;
     }
 
-    // Check role validity
-    if (!payload.role || !VALID_ROLES.has(payload.role)) {
-      return null;
-    }
-
-    // Check email
-    if (!payload.email || typeof payload.email !== 'string') {
+    // Check required identity fields
+    if (!payload.userId || !payload.email || typeof payload.email !== 'string') {
       return null;
     }
 

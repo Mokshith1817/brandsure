@@ -67,28 +67,28 @@ function chunkGuidelineText(text: string): string[] {
   return chunks.length > 0 ? chunks : [text.trim()];
 }
 
-const DEMO_USERS = [
+const JUDGE_USERS = [
   {
-    email: 'creator@paynest.demo',
-    password: 'PayNest2026!',
+    email: process.env.JUDGE_CREATOR_EMAIL || 'creator@example.com',
+    password: process.env.JUDGE_CREATOR_PASSWORD || 'PayNestCreator2026#Secure',
     full_name: 'PayNest Creator',
     role: 'creator',
   },
   {
-    email: 'reviewer@paynest.demo',
-    password: 'PayNest2026!',
+    email: process.env.JUDGE_REVIEWER_EMAIL || 'reviewer@example.com',
+    password: process.env.JUDGE_REVIEWER_PASSWORD || 'PayNestReviewer2026#Secure',
     full_name: 'PayNest Reviewer',
     role: 'reviewer',
   },
   {
-    email: 'manager@paynest.demo',
-    password: 'PayNest2026!',
+    email: process.env.JUDGE_MANAGER_EMAIL || 'manager@example.com',
+    password: process.env.JUDGE_MANAGER_PASSWORD || 'PayNestManager2026#Secure',
     full_name: 'PayNest Compliance Manager',
     role: 'manager',
   },
   {
-    email: 'admin@paynest.demo',
-    password: 'PayNest2026!',
+    email: process.env.JUDGE_ADMIN_EMAIL || 'admin@example.com',
+    password: process.env.JUDGE_ADMIN_PASSWORD || 'PayNestAdmin2026#Secure',
     full_name: 'PayNest Brand Admin',
     role: 'admin',
   },
@@ -137,7 +137,7 @@ async function seed() {
     process.exit(1);
   }
 
-  for (const userDef of DEMO_USERS) {
+  for (const userDef of JUDGE_USERS) {
     let authUserId: string;
     const existing = authUsers.users.find((u) => u.email?.toLowerCase() === userDef.email.toLowerCase());
 
@@ -302,11 +302,23 @@ async function seed() {
     },
   });
 
+  // Query row counts
+  const { count: profilesCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+  const { count: guidelinesCount } = await supabase.from('guidelines').select('*', { count: 'exact', head: true });
+  const { count: factsCount } = await supabase.from('facts').select('*', { count: 'exact', head: true });
+  const { count: glossaryCount } = await supabase.from('glossary').select('*', { count: 'exact', head: true });
+
   console.log('\n=============================================================');
   console.log('✅ PayNest Database Seeding Completed Successfully!');
   console.log('=============================================================');
-  console.log('Demo Credentials (all use password: PayNest2026!):');
-  DEMO_USERS.forEach((u) => {
+  console.log('Database Row Counts:');
+  console.log(` - Profiles   : ${profilesCount ?? 0}`);
+  console.log(` - Guidelines : ${guidelinesCount ?? 0} (${totalChunks} chunks, ${totalEmbedded} embedded)`);
+  console.log(` - Facts      : ${factsCount ?? 0}`);
+  console.log(` - Glossary   : ${glossaryCount ?? 0}`);
+  console.log('-------------------------------------------------------------');
+  console.log('Configured Judge User Accounts (passwords kept in environment):');
+  JUDGE_USERS.forEach((u) => {
     console.log(` - [${u.role.toUpperCase()}] ${u.email}`);
   });
   console.log('=============================================================\n');
